@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marek Grabowski | Business Professional</title>
-    <!-- Import czcionki Libre Baskerville z Google Fonts -->
+    <title>Marek Grabowski | Business Card</title>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
             margin: 0;
             font-family: 'Libre Baskerville', serif;
@@ -31,7 +31,7 @@
             margin-bottom: 20px;
             object-fit: cover;
             object-position: top;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3); /* Gładkie rozmycie wokół */
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
         }
         h1 {
             font-size: 2.5em;
@@ -62,7 +62,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Zdjęcie profilowe przycięte wyżej, bez obramowania i z gładkim rozmyciem -->
         <img src="https://github.com/marek-grvbowski/grvbowski-page/blob/main/profile.JPG?raw=true" alt="Marek Grabowski" class="profile-pic">
         
         <h1>Marek Grabowski</h1>
@@ -71,6 +70,7 @@
         <div class="icons">
             <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank"><i class="fab fa-linkedin"></i></a>
             <a href="mailto:marek@grvbowski.com"><i class="fas fa-envelope"></i></a>
+            <a href="calendar.html" title="Go to Calendar"><i class="fas fa-calendar-alt"></i></a>
         </div>
     </div>
 </body>
