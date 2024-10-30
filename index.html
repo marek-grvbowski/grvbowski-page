@@ -84,19 +84,20 @@
             width: calc(100% * 2); /* Adjust width based on the number of items */
         }
         .carousel-item {
-            min-width: 100%;
-            box-sizing: border-box;
-            background-color: rgba(60, 60, 60, 0.85);
-            padding: 20px;
-            border-radius: 8px;
-            text-align: left;
-            font-family: 'Montserrat', sans-serif;
-            margin: 0 5px;
-            border: 1px solid rgba(85, 85, 85, 0.6);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            word-wrap: break-word;
-            white-space: normal;
-        }
+    min-width: 100%;
+    box-sizing: border-box;
+    background-color: rgba(60, 60, 60, 0.85);
+    padding: 20px;
+    border-radius: 8px;
+    text-align: left;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0 5px;
+    border: 1px solid rgba(85, 85, 85, 0.6);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    word-break: break-word; /* Dodane */
+    overflow-wrap: break-word; /* Dodane */
+    white-space: normal; /* Dodane */
+}
         .carousel-item i {
             font-style: italic;
             display: block;
