@@ -74,32 +74,38 @@
             align-items: center;
         }
         .modal-content {
-            background-color: #2c2c2c; /* Solid color to distinguish modal */
+            background: linear-gradient(135deg, #1f1f1f, #3a3a3a);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
             width: 80%;
-            max-width: 600px;
+            max-width: 700px;
             height: 80%;
             color: #fff;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         .modal-content iframe {
             width: 100%;
-            height: 90%; /* Slightly smaller to allow space for close button */
+            height: 90%;
             border: none;
             border-radius: 8px;
-            background-color: #fff; /* Ensure iframe background is solid */
         }
         .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 2em;
-            color: #fff;
+            align-self: flex-end;
+            font-size: 1.8em;
+            color: #ff4c4c;
             cursor: pointer;
             font-weight: bold;
+            background-color: transparent;
+            border: none;
+            padding: 5px;
+            margin: -10px -10px 0 0;
+            transition: color 0.3s;
+        }
+        .close-btn:hover {
+            color: #ff6b6b;
         }
     </style>
 </head>
@@ -121,7 +127,7 @@
     <!-- Modal z iframe Google Calendar -->
     <div id="calendarModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
             <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true"></iframe>
         </div>
     </div>
