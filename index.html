@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marek Grabowski | Business Professional</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <img src="https://github.com/marek-grvbowski/grvbowski-page/blob/main/profile.JPG?raw=true" alt="Marek Grabowski" class="profile-pic">
+    
+    <h1>Marek Grabowski</h1>
+    <p>Business Professional</p>
+    <p>Helping businesses optimize sales strategies and grow through practical, data-driven solutions.</p>
+    <div class="icons">
+        <div class="icon-container">
+            <a id="referencesButton" title="View References"><i class="fas fa-quote-right"></i></a>
+            <div class="icon-label">References</div>
+        </div>
+        <div class="icon-container">
+            <a id="calendarButton" title="View Calendar"><i class="fas fa-calendar-alt"></i></a>
+            <div class="icon-label">Calendar</div>
+        </div>
+        <div class="icon-container">
+            <a id="contactButton" title="Contact Form"><i class="fas fa-envelope"></i></a>
+            <div class="icon-label">Contact form</div>
+        </div>
+        <div class="icon-container">
+            <a href="mailto:marek@grvbowski.com" title="Direct Message"><i class="fas fa-envelope-open-text"></i></a>
+            <div class="icon-label">Direct message</div>
+        </div>
+        <div class="icon-container">
+            <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <div class="icon-label">LinkedIn</div>
+        </div>
+    </div>
+
+    <!-- Carousel for References -->
+    <div class="toggle-container" id="carouselContainer">
+        <div class="carousel-wrapper" id="carouselWrapper">
+            <div class="carousel-item">
+                <i>"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</i>
+                <div class="reference-author">- Dawid Mędrek</div>
+                <div class="reference-position">CEO @ PushPushGo</div>
+            </div>
+            <div class="carousel-item">
+                <i>"Marek’s creativity and problem-solving skills were crucial to our sales process efficiency, driving positive outcomes and long-term improvements."</i>
+                <div class="reference-author">- Aleksander Uchto</div>
+                <div class="reference-position">Chief Sales Officer @ Divante</div>
+            </div>
+        </div>
+        <button class="carousel-button" id="nextButton">Next</button>
+    </div>
+
+    <!-- Calendar Section -->
+    <div class="toggle-container" id="calendarContainer">
+        <p>Book an appointment through my Google Calendar:</p>
+        <iframe src="https://calendar.google.com/calendar/embed?src=YOUR_CALENDAR_ID&ctz=Europe%2FWarsaw" style="width:100%; height:200px; border:none;"></iframe>
+    </div>
+
+    <!-- Contact Form Section -->
+    <div class="toggle-container" id="contactContainer">
+        <p>Contact me via email:</p>
+        <form action="mailto:marek@grvbowski.com" method="POST" enctype="text/plain">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+            <label for="message">Message:</label><br>
+            <textarea id="message" name="message" rows="4" required></textarea><br><br>
+            <input type="submit" value="Send">
+        </form>
+    </div>
+</div>
+
+<script src="scripts.js"></script>
+</body>
+</html>
