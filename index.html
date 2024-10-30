@@ -148,6 +148,16 @@
         .carousel-button:hover {
             background-color: rgba(255, 255, 255, 0.3);
         }
+        .calendar-iframe-container {
+            background-color: #ffffff; /* Jasne tło dla kalendarza */
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+iframe {
+            border-radius: 8px;
+            background-color: #ffffff;
+}
     </style>
 </head>
 <body>
@@ -200,9 +210,11 @@
 
     <!-- Calendar Section -->
     <div class="toggle-container" id="calendarContainer">
-        <p>Pick a convenient date:</p>
-        <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true" style="width:100%; height:200px; border:none;"></iframe>
+    <p>Pick a convenient date:</p>
+    <div class="calendar-iframe-container">
+        <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true" style="width:100%; height:300px; border:none; background-color: #ffffff;"></iframe>
     </div>
+</div>
 
     <!-- Contact Form Section -->
     <div class="toggle-container" id="contactContainer">
