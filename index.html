@@ -6,7 +6,6 @@
     <title>Marek Grabowski | Business Professional</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://calendar.google.com/calendar/scheduling-button-script.css" rel="stylesheet">
     <style>
         body {
             display: flex;
@@ -39,7 +38,7 @@
             font-size: 2.5em;
             margin: 0;
             font-weight: 500;
-            letter-spacing: 1px; /* niewielki odstęp między literami */
+            letter-spacing: 1px;
             line-height: 1.1;
         }
         p {
@@ -61,6 +60,41 @@
         .icons a:hover {
             color: #1abc9c;
         }
+        /* Modal style */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2e2e2e;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            height: 80%;
+        }
+        .modal-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 8px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2em;
+            color: #fff;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -71,26 +105,40 @@
         <p>Business Professional</p>
         <p>Helping businesses optimize sales strategies and grow through practical, data-driven solutions.</p>
         <div class="icons">
-            <!-- Ikona kalendarza pełniąca rolę przycisku rezerwacji -->
+            <!-- Ikona kalendarza otwierająca modal -->
             <a id="calendarButton" title="Zarezerwuj spotkanie"><i class="fas fa-calendar-alt"></i></a>
             <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank"><i class="fab fa-linkedin"></i></a>
             <a href="mailto:marek@grvbowski.com"><i class="fas fa-envelope"></i></a>
         </div>
     </div>
 
-    <!-- Google Calendar Appointment Scheduling Script -->
-    <script src="https://calendar.google.com/calendar/scheduling-button-script.js" async></script>
+    <!-- Modal z iframe Google Calendar -->
+    <div id="calendarModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true"></iframe>
+        </div>
+    </div>
+
+    <!-- Skrypt do obsługi modalu -->
     <script>
-    (function() {
-        window.addEventListener('load', function() {
-            const calendarButton = document.getElementById('calendarButton');
-            calendar.calendarButton.load({
-                url: 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true',
-                target: calendarButton // Przypisuje ikonę jako target
-            });
+        const calendarButton = document.getElementById('calendarButton');
+        const calendarModal = document.getElementById('calendarModal');
+
+        calendarButton.addEventListener('click', function() {
+            calendarModal.style.display = 'flex';
         });
-    })();
+
+        function closeModal() {
+            calendarModal.style.display = 'none';
+        }
+
+        // Zamknij modal po kliknięciu poza jego obszar
+        window.onclick = function(event) {
+            if (event.target == calendarModal) {
+                closeModal();
+            }
+        }
     </script>
-    <!-- end Google Calendar Appointment Scheduling Script -->
 </body>
 </html>
