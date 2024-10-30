@@ -60,86 +60,38 @@
         .icons a:hover {
             color: #1abc9c;
         }
-        /* Modal style */
-        .modal {
+        /* Reference blocks style */
+        .references-container {
             display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #2b2b2b;
-            padding: 20px;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 600px;
-            color: #fff;
-            display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
-        h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.8em;
-            margin-bottom: 10px;
+        .references-container.show {
+            display: flex;
+            opacity: 1;
         }
         .reference-item {
-            background: rgba(60, 60, 60, 0.85); /* Transparent background for smoother transition */
+            background-color: rgba(60, 60, 60, 0.85);
             padding: 15px;
-            margin: 10px 0;
             border-radius: 8px;
-            width: 100%;
             text-align: left;
             font-family: 'Montserrat', sans-serif;
             border: 1px solid rgba(85, 85, 85, 0.6);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+            transition: transform 0.3s ease;
         }
-        .reference-text {
+        .reference-item i {
             font-style: italic;
-            font-size: 1.1em;
+            display: block;
             margin-bottom: 5px;
         }
         .reference-author {
-            font-size: 1em;
             font-weight: bold;
-            margin-left: 15px;
-        }
-        .small-text {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.8em;
-            opacity: 0.6;
-            text-align: center;
-            margin-top: 10px;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        input, textarea {
-            padding: 10px;
-            font-size: 1em;
-            border-radius: 5px;
-            border: none;
-            outline: none;
-            width: 100%;
-            margin-top: 10px;
-        }
-        button {
-            padding: 10px;
-            font-size: 1em;
-            background-color: #1abc9c;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
         }
     </style>
 </head>
@@ -152,63 +104,41 @@
     <p>Business Professional</p>
     <p>Helping businesses optimize sales strategies and grow through practical, data-driven solutions.</p>
     <div class="icons">
-        <a href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true" target="_blank" title="Book an appointment"><i class="fas fa-calendar-alt"></i></a>
         <a id="referencesButton" title="View References"><i class="fas fa-quote-right"></i></a>
-        <a id="contactButton" title="Contact"><i class="fas fa-envelope-open-text"></i></a>
+        <a href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true" target="_blank" title="Book an appointment"><i class="fas fa-calendar-alt"></i></a>
         <a href="mailto:marek@grvbowski.com" title="Email"><i class="fas fa-envelope"></i></a>
         <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank"><i class="fab fa-linkedin"></i></a>
     </div>
-</div>
 
-<!-- Modal for References -->
-<div id="referencesModal" class="modal">
-    <div class="modal-content">
-        <h2>References</h2>
+    <!-- Reference blocks -->
+    <div class="references-container" id="referencesContainer">
         <div class="reference-item">
-            <div class="reference-text">"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</div>
-            <div class="reference-author">- Dawid Mędrek, CEO, PushPushGo</div>
+            <i>"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</i>
+            <div class="reference-author">- Dawid Mędrek</div>
+            <div class="reference-position">CEO @ PushPushGo</div>
         </div>
         <div class="reference-item">
-            <div class="reference-text">"Marek’s creativity and problem-solving skills were crucial to our sales process efficiency, driving positive outcomes and long-term improvements."</div>
-            <div class="reference-author">- Aleksander Uchto, Chief Sales Officer, Divante</div>
+            <i>"Marek’s creativity and problem-solving skills were crucial to our sales process efficiency, driving positive outcomes and long-term improvements."</i>
+            <div class="reference-author">- Aleksander Uchto</div>
+            <div class="reference-position">Chief Sales Officer @ Divante</div>
         </div>
-        <p class="small-text">Full references available upon request.</p>
     </div>
 </div>
 
-<!-- Modal for Contact Form -->
-<div id="contactModal" class="modal">
-    <div class="modal-content">
-        <h2>Contact Me</h2>
-        <form action="mailto:marek@grvbowski.com" method="POST" enctype="text/plain">
-            <input type="text" name="name" placeholder="Your Name" required>
-            <input type="email" name="email" placeholder="Your Email" required>
-            <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
-            <button type="submit">Send Message</button>
-        </form>
-    </div>
-</div>
-
-<!-- JavaScript for modals -->
+<!-- JavaScript for toggling references display -->
 <script>
     const referencesButton = document.getElementById('referencesButton');
-    const contactButton = document.getElementById('contactButton');
-    const referencesModal = document.getElementById('referencesModal');
-    const contactModal = document.getElementById('contactModal');
+    const referencesContainer = document.getElementById('referencesContainer');
 
-    // Event listeners to open modals
-    referencesButton.addEventListener('click', () => referencesModal.style.display = 'flex');
-    contactButton.addEventListener('click', () => contactModal.style.display = 'flex');
-
-    // Function to close modals by clicking outside
-    window.onclick = function(event) {
-        if (event.target == referencesModal) {
-            referencesModal.style.display = 'none';
+    // Toggle the display of the references container
+    referencesButton.addEventListener('click', () => {
+        referencesContainer.classList.toggle('show');
+        if (referencesContainer.classList.contains('show')) {
+            referencesContainer.style.display = 'flex';
+        } else {
+            referencesContainer.style.display = 'none';
         }
-        if (event.target == contactModal) {
-            contactModal.style.display = 'none';
-        }
-    }
+    });
 </script>
 
 </body>
