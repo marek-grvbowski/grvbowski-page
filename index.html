@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marek Grabowski | Business card</title>
+    <title>Marek Grabowski | Business Professional</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -52,31 +52,49 @@
         }
         .icons {
             margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
-        .icons a {
+        .icon-container {
+            text-align: center;
+        }
+        .icon-container a {
             color: #fff;
-            margin: 0 15px;
             font-size: 1.5em;
             transition: color 0.3s;
             cursor: pointer;
         }
-        .icons a:hover {
+        .icon-container a:hover {
             color: #FFA07A;
         }
-        /* Carousel style */
-        .carousel-container {
+        .icon-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8em;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        /* Toggle Container Styles */
+        .toggle-container {
             position: relative;
             width: 100%;
             max-width: 500px;
-            margin: 20px auto 0; /* Zmniejszony dolny margines */
+            margin: 0 auto;
             overflow: hidden;
             opacity: 0;
             transition: opacity 0.6s ease, max-height 0.6s ease;
-            max-height: 0; /* Zablokowanie wysokości do animacji */
+            max-height: 0;
+            padding: 0; /* Remove padding to avoid extra space */
+            background-color: rgba(60, 60, 60, 0.85);
+            border-radius: 8px;
+            text-align: left;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
-        .carousel-container.show {
+        .toggle-container.show {
             opacity: 1;
-            max-height: 300px; /* Maksymalna wysokość kontenera po rozwinięciu */
+            max-height: 300px;
+            padding: 20px; /* Restore padding when expanded */
         }
         .carousel-wrapper {
             display: flex;
@@ -86,14 +104,13 @@
         .carousel-item {
             min-width: 100%;
             box-sizing: border-box;
-            background-color: rgba(60, 60, 60, 0.85);
+            background-color: transparent; /* Changed to remove extra background */
             padding: 20px;
             border-radius: 8px;
             text-align: left;
             font-family: 'Montserrat', sans-serif;
-            margin: 0 auto 10px; /* Zmniejszony dolny margines */
-            border: 1px solid rgba(85, 85, 85, 0.6);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            margin: 0 auto;
+            border: none;
             word-wrap: break-word;
             overflow-wrap: break-word;
             white-space: normal;
@@ -115,7 +132,7 @@
         }
         /* Przycisk Next */
         .carousel-button {
-            margin-top: 5px; /* Zmniejszony górny margines */
+            margin-top: 10px;
             background-color: rgba(0, 0, 0, 0.5);
             color: #fff;
             font-size: 1em;
@@ -124,7 +141,9 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             border: none;
-            display: inline-block;
+            display: block;
+            margin-left: auto;
+            margin-right: auto; /* Center the button */
         }
         .carousel-button:hover {
             background-color: rgba(255, 255, 255, 0.3);
@@ -140,14 +159,30 @@
     <p>Business Professional</p>
     <p>Helping businesses optimize sales strategies and grow through practical, data-driven solutions.</p>
     <div class="icons">
-        <a id="referencesButton" title="View References"><i class="fas fa-quote-right"></i></a>
-        <a href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true" target="_blank" title="Book an appointment"><i class="fas fa-calendar-alt"></i></a>
-        <a href="mailto:marek@grvbowski.com" title="Email"><i class="fas fa-envelope"></i></a>
-        <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank"><i class="fab fa-linkedin"></i></a>
+        <div class="icon-container">
+            <a id="referencesButton" title="View References"><i class="fas fa-quote-right"></i></a>
+            <div class="icon-label">References</div>
+        </div>
+        <div class="icon-container">
+            <a id="calendarButton" title="View Calendar"><i class="fas fa-calendar-alt"></i></a>
+            <div class="icon-label">Calendar</div>
+        </div>
+        <div class="icon-container">
+            <a id="contactButton" title="Contact Form"><i class="fas fa-envelope"></i></a>
+            <div class="icon-label">Contact form</div>
+        </div>
+        <div class="icon-container">
+            <a href="mailto:marek@grvbowski.com" title="Direct Message"><i class="fas fa-envelope-open-text"></i></a>
+            <div class="icon-label">Direct message</div>
+        </div>
+        <div class="icon-container">
+            <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <div class="icon-label">LinkedIn</div>
+        </div>
     </div>
 
     <!-- Carousel for References -->
-    <div class="carousel-container" id="carouselContainer">
+    <div class="toggle-container" id="carouselContainer">
         <div class="carousel-wrapper" id="carouselWrapper">
             <div class="carousel-item">
                 <i>"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</i>
@@ -159,58 +194,79 @@
                 <div class="reference-author">- Aleksander Uchto</div>
                 <div class="reference-position">Chief Sales Officer @ Divante</div>
             </div>
-            <div class="carousel-item">
-                <i>"Marek was instrumental in driving our expansion into new markets."</i>
-                <div class="reference-author">- Anna Kowalska</div>
-                <div class="reference-position">Marketing Director @ ExampleCo</div>
-            </div>
-            <div class="carousel-item">
-                <i>"His data-driven approach transformed our sales process efficiency."</i>
-                <div class="reference-author">- John Doe</div>
-                <div class="reference-position">Sales Lead @ SalesBoost</div>
-            </div>
-            <div class="carousel-item">
-                <i>"A truly strategic thinker with a knack for identifying opportunities."</i>
-                <div class="reference-author">- Jane Smith</div>
-                <div class="reference-position">VP of Sales @ GrowthGenius</div>
-            </div>
         </div>
         <button class="carousel-button" id="nextButton">Next</button>
+    </div>
+
+    <!-- Calendar Section -->
+    <div class="toggle-container" id="calendarContainer">
+        <p>Book an appointment through my Google Calendar:</p>
+        <iframe src="https://calendar.google.com/calendar/embed?src=YOUR_CALENDAR_ID&ctz=Europe%2FWarsaw" style="width:100%; height:200px; border:none;"></iframe>
+    </div>
+
+    <!-- Contact Form Section -->
+    <div class="toggle-container" id="contactContainer">
+        <p>Contact me via email:</p>
+        <form action="mailto:marek@grvbowski.com" method="POST" enctype="text/plain">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+            <label for="message">Message:</label><br>
+            <textarea id="message" name="message" rows="4" required></textarea><br><br>
+            <input type="submit" value="Send">
+        </form>
     </div>
 </div>
 
 <!-- JavaScript for toggling and carousel functionality -->
 <script>
     const referencesButton = document.getElementById('referencesButton');
+    const calendarButton = document.getElementById('calendarButton');
+    const contactButton = document.getElementById('contactButton');
     const carouselContainer = document.getElementById('carouselContainer');
+    const calendarContainer = document.getElementById('calendarContainer');
+    const contactContainer = document.getElementById('contactContainer');
     const carouselWrapper = document.getElementById('carouselWrapper');
     const nextButton = document.getElementById('nextButton');
     let currentIndex = 0;
 
-    // Toggle the display of the carousel
-    referencesButton.addEventListener('click', () => {
-        if (carouselContainer.classList.contains('show')) {
-            carouselContainer.classList.remove('show');
-            carouselContainer.style.maxHeight = '0'; // Collapse the container
-            carouselContainer.style.opacity = '0';
-        } else {
-            carouselContainer.classList.add('show');
-            carouselContainer.style.maxHeight = '300px'; // Expand the container
-            carouselContainer.style.opacity = '1';
-        }
-    });
+    function closeAllContainers() {
+        [carouselContainer, calendarContainer, contactContainer].forEach(container => {
+            container.classList.remove('show');
+            container.style.maxHeight = '0';
+            container.style.opacity = '0';
+            container.style.padding = '0';
+        });
+    }
 
-    // Function to update the carousel position
+    function toggleContainer(container) {
+        if (!container.classList.contains('show')) {
+            closeAllContainers();
+            container.classList.add('show');
+            container.style.maxHeight = '300px';
+            container.style.opacity = '1';
+            container.style.padding = '20px';
+        } else {
+            container.classList.remove('show');
+            container.style.maxHeight = '0';
+            container.style.opacity = '0';
+            container.style.padding = '0';
+        }
+    }
+
+    referencesButton.addEventListener('click', () => toggleContainer(carouselContainer));
+    calendarButton.addEventListener('click', () => toggleContainer(calendarContainer));
+    contactButton.addEventListener('click', () => toggleContainer(contactContainer));
+
     function updateCarousel() {
-        const offset = -currentIndex * 100; // Move the carousel by the width of one item
+        const offset = -currentIndex * 100;
         carouselWrapper.style.transform = `translateX(${offset}%)`;
     }
 
-    // Next button click event
     nextButton.addEventListener('click', () => {
         currentIndex = (currentIndex < carouselWrapper.children.length - 1) ? currentIndex + 1 : 0;
         updateCarousel();
     });
 </script>
+
 </body>
 </html>
