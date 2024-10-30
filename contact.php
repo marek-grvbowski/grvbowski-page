@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Adres e-mail, na który będzie wysyłana wiadomość
 $to = "marek@grvbowski.com";
 $subject = "New Contact Form Submission";
