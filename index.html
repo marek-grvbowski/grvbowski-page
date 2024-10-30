@@ -85,7 +85,7 @@
         }
         .carousel-item {
     min-width: 100%;
-    max-width: 100%; /* Ogranicza szerokość do kontenera */
+    max-width: 100%;
     box-sizing: border-box;
     background-color: rgba(60, 60, 60, 0.85);
     padding: 20px;
@@ -95,12 +95,10 @@
     margin: 0 5px;
     border: 1px solid rgba(85, 85, 85, 0.6);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: normal;
-    display: flex; /* Dodane */
-    flex-direction: column; /* Dodane */
-    justify-content: space-between; /* Dodane, aby tekst był wyśrodkowany w pionie */
+    overflow: hidden; /* Dodane */
+    text-overflow: ellipsis; /* Dodane */
+    white-space: pre-wrap; /* Dodane */
+    word-break: break-word; /* Dodane */
 }
         .carousel-item i {
             font-style: italic;
