@@ -68,15 +68,15 @@
             position: relative;
             width: 100%;
             max-width: 500px;
-            margin: 20px auto;
+            margin: 20px auto 0; /* Zmniejszony dolny margines */
             overflow: hidden;
             opacity: 0;
-            transition: opacity 0.6s ease, height 0.6s ease;
-            height: 0;
+            transition: opacity 0.6s ease, max-height 0.6s ease;
+            max-height: 0; /* Zablokowanie wysokości do animacji */
         }
         .carousel-container.show {
             opacity: 1;
-            height: 250px;
+            max-height: 300px; /* Maksymalna wysokość kontenera po rozwinięciu */
         }
         .carousel-wrapper {
             display: flex;
@@ -91,7 +91,7 @@
             border-radius: 8px;
             text-align: left;
             font-family: 'Montserrat', sans-serif;
-            margin: 0 auto;
+            margin: 0 auto 10px; /* Zmniejszony dolny margines */
             border: 1px solid rgba(85, 85, 85, 0.6);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             word-wrap: break-word;
@@ -115,14 +115,14 @@
         }
         /* Przycisk Next */
         .carousel-button {
-            margin-top: 10px;
+            margin-top: 5px; /* Zmniejszony górny margines */
             background-color: rgba(0, 0, 0, 0.5);
             color: #fff;
             font-size: 1em;
             padding: 5px 15px;
             border-radius: 20px;
             cursor: pointer;
-            transition: background-color 0.4s ease;
+            transition: background-color 0.3s ease;
             border: none;
             display: inline-block;
         }
@@ -180,6 +180,7 @@
 </div>
 
 <!-- JavaScript for toggling and carousel functionality -->
+<!-- JavaScript for toggling and carousel functionality -->
 <script>
     const referencesButton = document.getElementById('referencesButton');
     const carouselContainer = document.getElementById('carouselContainer');
@@ -189,12 +190,20 @@
 
     // Toggle the display of the carousel
     referencesButton.addEventListener('click', () => {
-        carouselContainer.classList.toggle('show');
+        if (carouselContainer.classList.contains('show')) {
+            carouselContainer.classList.remove('show');
+            carouselContainer.style.maxHeight = '0'; // Collapse the container
+            carouselContainer.style.opacity = '0';
+        } else {
+            carouselContainer.classList.add('show');
+            carouselContainer.style.maxHeight = '300px'; // Expand the container
+            carouselContainer.style.opacity = '1';
+        }
     });
 
     // Function to update the carousel position
     function updateCarousel() {
-        const offset = -currentIndex * 100; // Przesunięcie tylko o szerokość jednego bloku
+        const offset = -currentIndex * 100; // Move the carousel by the width of one item
         carouselWrapper.style.transform = `translateX(${offset}%)`;
     }
 
@@ -204,6 +213,5 @@
         updateCarousel();
     });
 </script>
-
 </body>
 </html>
