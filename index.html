@@ -4,30 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marek Grabowski | Business Professional</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Global styles */
         body {
-            font-family: 'DM Serif Display', serif;
-            color: #fff;
-            background: linear-gradient(135deg, #1a1a1a, #2e2e2e);
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            height: 100vh;
             margin: 0;
+            font-family: 'DM Serif Display', serif;
+            color: #fff;
+            background: linear-gradient(135deg, #1a1a1a, #2e2e2e);
+            background-size: cover;
+            text-align: center;
         }
         .container {
             text-align: center;
             max-width: 600px;
             padding: 20px;
         }
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            object-fit: cover;
+            object-position: top;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+        }
         h1 {
             font-size: 2.5em;
-            margin-bottom: 0.5em;
+            margin: 0;
+            font-weight: 500;
+            letter-spacing: 1px;
+            line-height: 1.1;
         }
         p {
+            margin: 10px 0 20px;
             font-size: 1.2em;
+            font-weight: 300;
+            line-height: 1.3;
         }
         .icons {
             margin-top: 20px;
@@ -42,7 +60,7 @@
         .icons a:hover {
             color: #1abc9c;
         }
-        /* Modal styles */
+        /* Modal style */
         .modal {
             display: none;
             position: fixed;
@@ -56,7 +74,7 @@
             align-items: center;
         }
         .modal-content {
-            background-color: #2c2c2c;
+            background: linear-gradient(135deg, #2c2c2c, #4a4a4a);
             padding: 20px;
             border-radius: 10px;
             width: 80%;
@@ -74,8 +92,20 @@
             background-color: transparent;
             border: none;
         }
-        .reference, form {
-            margin-top: 20px;
+        .reference-text {
+            font-family: 'Montserrat', sans-serif;
+            font-style: italic;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+        .small-text {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         input, textarea {
             padding: 10px;
@@ -101,15 +131,18 @@
 <body>
 
 <div class="container">
+    <img src="https://github.com/marek-grvbowski/grvbowski-page/blob/main/profile.JPG?raw=true" alt="Marek Grabowski" class="profile-pic">
+    
     <h1>Marek Grabowski</h1>
     <p>Business Professional</p>
     <p>Helping businesses optimize sales strategies and grow through practical, data-driven solutions.</p>
     <div class="icons">
-        <!-- Calendar button as before -->
-        <a id="calendarButton" title="Book an appointment"><i class="fas fa-calendar-alt"></i></a>
-        <!-- New icons for References and Contact -->
+        <!-- Calendar icon as before -->
+        <a href="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0JCVzJrelNORDofFiyp2eocxn_qVhlTH5egTo1lLUiPRsklMLigmNDAwNwIuUmchmZ0DZcxQ9w?gv=true" target="_blank" title="Book an appointment"><i class="fas fa-calendar-alt"></i></a>
+        <!-- Icons for References and Contact -->
         <a id="referencesButton" title="View References"><i class="fas fa-quote-right"></i></a>
-        <a id="contactButton" title="Contact"><i class="fas fa-envelope"></i></a>
+        <a id="contactButton" title="Contact"><i class="fas fa-envelope-open-text"></i></a>
+        <a href="mailto:marek@grvbowski.com" title="Email"><i class="fas fa-envelope"></i></a>
         <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank"><i class="fab fa-linkedin"></i></a>
     </div>
 </div>
@@ -119,15 +152,11 @@
     <div class="modal-content">
         <button class="close-btn" onclick="closeModal('referencesModal')">&times;</button>
         <h2>References</h2>
-        <div class="reference">
-            <p>"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</p>
-            <p><strong>Dawid Mędrek, CEO, PushPushGo</strong></p>
-        </div>
-        <div class="reference">
-            <p>"Marek’s creativity and problem-solving skills were crucial to our sales process efficiency, driving positive outcomes and long-term improvements."</p>
-            <p><strong>Aleksander Uchto, Chief Sales Officer, Divante</strong></p>
-        </div>
-        <p>Full references available upon request.</p>
+        <div class="reference-text">"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</div>
+        <p><strong>Dawid Mędrek, CEO, PushPushGo</strong></p>
+        <div class="reference-text">"Marek’s creativity and problem-solving skills were crucial to our sales process efficiency, driving positive outcomes and long-term improvements."</div>
+        <p><strong>Aleksander Uchto, Chief Sales Officer, Divante</strong></p>
+        <p class="small-text">Full references available upon request.</p>
     </div>
 </div>
 
@@ -147,7 +176,6 @@
 
 <!-- JavaScript for modals -->
 <script>
-    const calendarButton = document.getElementById('calendarButton');
     const referencesButton = document.getElementById('referencesButton');
     const contactButton = document.getElementById('contactButton');
     const referencesModal = document.getElementById('referencesModal');
