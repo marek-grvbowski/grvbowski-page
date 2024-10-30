@@ -69,12 +69,12 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #2e2e2e, #3a3a3a);
+            background-color: rgba(0, 0, 0, 0.7); /* Darker background to distinguish modal */
             justify-content: center;
             align-items: center;
         }
         .modal-content {
-            background-color: #333;
+            background-color: #2b2b2b; /* Differentiated modal background */
             padding: 20px;
             border-radius: 10px;
             width: 80%;
@@ -84,22 +84,13 @@
             flex-direction: column;
             align-items: center;
         }
-        .close-btn {
-            align-self: flex-end;
-            font-size: 1.8em;
-            color: #ff4c4c;
-            cursor: pointer;
-            font-weight: bold;
-            background-color: transparent;
-            border: none;
-        }
         h2 {
             font-family: 'Montserrat', sans-serif;
             font-size: 1.8em;
             margin-bottom: 10px;
         }
         .reference-item {
-            background-color: #444;
+            background-color: #3c3c3c; /* Slightly lighter than modal background for smoother transition */
             padding: 15px;
             margin: 10px 0;
             border-radius: 8px;
@@ -170,7 +161,6 @@
 <!-- Modal for References -->
 <div id="referencesModal" class="modal">
     <div class="modal-content">
-        <button class="close-btn" onclick="closeModal('referencesModal')">&times;</button>
         <h2>References</h2>
         <div class="reference-item">
             <div class="reference-text">"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</div>
@@ -187,7 +177,6 @@
 <!-- Modal for Contact Form -->
 <div id="contactModal" class="modal">
     <div class="modal-content">
-        <button class="close-btn" onclick="closeModal('contactModal')">&times;</button>
         <h2>Contact Me</h2>
         <form action="mailto:marek@grvbowski.com" method="POST" enctype="text/plain">
             <input type="text" name="name" placeholder="Your Name" required>
@@ -209,18 +198,13 @@
     referencesButton.addEventListener('click', () => referencesModal.style.display = 'flex');
     contactButton.addEventListener('click', () => contactModal.style.display = 'flex');
 
-    // Function to close modals
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-
-    // Close modals when clicking outside of them
+    // Function to close modals by clicking outside
     window.onclick = function(event) {
         if (event.target == referencesModal) {
-            closeModal('referencesModal');
+            referencesModal.style.display = 'none';
         }
         if (event.target == contactModal) {
-            closeModal('contactModal');
+            contactModal.style.display = 'none';
         }
     }
 </script>
