@@ -75,7 +75,7 @@
             transition: opacity 0.8s ease, height 0.8s ease;
         }
         .carousel-container.show {
-            height: 250px;
+            height: 270px;
             opacity: 1;
         }
         .carousel-wrapper {
@@ -95,6 +95,7 @@
             border: 1px solid rgba(85, 85, 85, 0.6);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             word-wrap: break-word;
+            white-space: normal;
         }
         .carousel-item i {
             font-style: italic;
@@ -112,17 +113,15 @@
         }
         /* New navigation button */
         .carousel-button {
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
+            margin-top: 10px;
             background-color: rgba(0, 0, 0, 0.5);
             color: #fff;
-            font-size: 1.2em;
+            font-size: 1em;
             padding: 5px 15px;
             border-radius: 20px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            border: none;
         }
         .carousel-button:hover {
             background-color: rgba(255, 255, 255, 0.3);
@@ -158,8 +157,8 @@
                 <div class="reference-position">Chief Sales Officer @ Divante</div>
             </div>
         </div>
+        <button class="carousel-button" id="nextButton">Next</button>
     </div>
-    <button class="carousel-button" id="nextButton">Next</button>
 </div>
 
 <!-- JavaScript for toggling and carousel functionality -->
