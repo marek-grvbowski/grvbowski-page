@@ -66,7 +66,7 @@
         /* Carousel style */
         .carousel-container {
             position: relative;
-            width: 90%;
+            width: 100%;
             max-width: 500px;
             margin: 20px auto;
             overflow: hidden;
@@ -81,7 +81,7 @@
         .carousel-wrapper {
             display: flex;
             transition: transform 0.5s ease;
-            width: calc(100% * 2); /* Adjust width based on the number of items */
+            width: 100%;
         }
         .carousel-item {
             min-width: 100%;
@@ -91,11 +91,13 @@
             border-radius: 8px;
             text-align: left;
             font-family: 'Montserrat', sans-serif;
-            margin: 0 5px;
+            margin: 0 auto;
             border: 1px solid rgba(85, 85, 85, 0.6);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             word-wrap: break-word;
+            overflow-wrap: break-word;
             white-space: normal;
+            word-break: break-word;
         }
         .carousel-item i {
             font-style: italic;
@@ -120,7 +122,7 @@
             padding: 5px 15px;
             border-radius: 20px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.4s ease;
             border: none;
             display: inline-block;
         }
@@ -157,6 +159,21 @@
                 <div class="reference-author">- Aleksander Uchto</div>
                 <div class="reference-position">Chief Sales Officer @ Divante</div>
             </div>
+            <div class="carousel-item">
+                <i>"Marek was instrumental in driving our expansion into new markets."</i>
+                <div class="reference-author">- Anna Kowalska</div>
+                <div class="reference-position">Marketing Director @ ExampleCo</div>
+            </div>
+            <div class="carousel-item">
+                <i>"His data-driven approach transformed our sales process efficiency."</i>
+                <div class="reference-author">- John Doe</div>
+                <div class="reference-position">Sales Lead @ SalesBoost</div>
+            </div>
+            <div class="carousel-item">
+                <i>"A truly strategic thinker with a knack for identifying opportunities."</i>
+                <div class="reference-author">- Jane Smith</div>
+                <div class="reference-position">VP of Sales @ GrowthGenius</div>
+            </div>
         </div>
         <button class="carousel-button" id="nextButton">Next</button>
     </div>
@@ -177,7 +194,7 @@
 
     // Function to update the carousel position
     function updateCarousel() {
-        const offset = -currentIndex * 100;
+        const offset = -currentIndex * 100; // Przesunięcie tylko o szerokość jednego bloku
         carouselWrapper.style.transform = `translateX(${offset}%)`;
     }
 
