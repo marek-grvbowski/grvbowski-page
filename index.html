@@ -24,6 +24,9 @@
             text-align: center;
             max-width: 600px;
             padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Subtle highlight for the whole section */
         }
         .profile-pic {
             width: 150px;
@@ -58,7 +61,7 @@
             cursor: pointer;
         }
         .icons a:hover {
-            color: #1abc9c;
+            color: #FFA07A; /* Bladopomarańczowy */
         }
         /* Carousel style */
         .carousel-container {
@@ -66,16 +69,18 @@
             position: relative;
             width: 90%;
             max-width: 500px;
-            height: 200px;
+            height: 220px;
             margin: 20px auto;
             overflow: hidden;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.6s ease, max-height 0.6s ease;
+            max-height: 0;
         }
         .carousel-container.show {
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 1;
+            max-height: 250px;
         }
         .carousel-wrapper {
             display: flex;
@@ -92,7 +97,7 @@
             font-family: 'Montserrat', sans-serif;
             margin: 0 5px;
             border: 1px solid rgba(85, 85, 85, 0.6);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Highlight active text area */
             word-wrap: break-word;
         }
         .carousel-item i {
@@ -109,7 +114,7 @@
             font-size: 0.9em;
             color: #b0b0b0;
         }
-        /* Arrows */
+        /* Arrow */
         .carousel-arrow {
             position: absolute;
             top: 50%;
@@ -121,11 +126,6 @@
             padding: 5px 10px;
             border-radius: 50%;
             transition: background-color 0.3s ease;
-        }
-        .carousel-arrow.left {
-            left: 10px;
-        }
-        .carousel-arrow.right {
             right: 10px;
         }
         .carousel-arrow:hover {
@@ -150,7 +150,6 @@
 
     <!-- Carousel for References -->
     <div class="carousel-container" id="carouselContainer">
-        <span class="carousel-arrow left" id="leftArrow">&#10094;</span>
         <div class="carousel-wrapper" id="carouselWrapper">
             <div class="carousel-item">
                 <i>"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</i>
@@ -172,7 +171,6 @@
     const referencesButton = document.getElementById('referencesButton');
     const carouselContainer = document.getElementById('carouselContainer');
     const carouselWrapper = document.getElementById('carouselWrapper');
-    const leftArrow = document.getElementById('leftArrow');
     const rightArrow = document.getElementById('rightArrow');
     let currentIndex = 0;
 
@@ -186,12 +184,6 @@
         const offset = -currentIndex * 100;
         carouselWrapper.style.transform = `translateX(${offset}%)`;
     }
-
-    // Left arrow click event
-    leftArrow.addEventListener('click', () => {
-        currentIndex = (currentIndex > 0) ? currentIndex - 1 : carouselWrapper.children.length - 1;
-        updateCarousel();
-    });
 
     // Right arrow click event
     rightArrow.addEventListener('click', () => {
