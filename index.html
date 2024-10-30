@@ -60,38 +60,69 @@
         .icons a:hover {
             color: #1abc9c;
         }
-        /* Reference blocks style */
-        .references-container {
+        /* Carousel style */
+        .carousel-container {
             display: none;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-            opacity: 0;
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            margin: 20px auto;
+            overflow: hidden;
             transition: opacity 0.5s ease;
         }
-        .references-container.show {
-            display: flex;
+        .carousel-container.show {
+            display: block;
             opacity: 1;
         }
-        .reference-item {
+        .carousel-wrapper {
+            display: flex;
+            transition: transform 0.5s ease;
+            width: calc(100% * 2);
+        }
+        .carousel-item {
+            min-width: 100%;
+            box-sizing: border-box;
             background-color: rgba(60, 60, 60, 0.85);
             padding: 15px;
             border-radius: 8px;
             text-align: left;
             font-family: 'Montserrat', sans-serif;
+            margin: 0 10px;
             border: 1px solid rgba(85, 85, 85, 0.6);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 0 auto;
-            transition: transform 0.3s ease;
         }
-        .reference-item i {
+        .carousel-item i {
             font-style: italic;
             display: block;
             margin-bottom: 5px;
         }
         .reference-author {
             font-weight: bold;
+        }
+        .reference-position {
+            opacity: 0.7;
+        }
+        /* Arrows */
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2em;
+            color: #fff;
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 50%;
+        }
+        .carousel-arrow.left {
+            left: -30px;
+        }
+        .carousel-arrow.right {
+            right: -30px;
+        }
+        .carousel-arrow:hover {
+            background-color: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
@@ -110,34 +141,56 @@
         <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank"><i class="fab fa-linkedin"></i></a>
     </div>
 
-    <!-- Reference blocks -->
-    <div class="references-container" id="referencesContainer">
-        <div class="reference-item">
-            <i>"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</i>
-            <div class="reference-author">- Dawid Mędrek</div>
-            <div class="reference-position">CEO @ PushPushGo</div>
+    <!-- Carousel for References -->
+    <div class="carousel-container" id="carouselContainer">
+        <div class="carousel-wrapper" id="carouselWrapper">
+            <div class="carousel-item">
+                <i>"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</i>
+                <div class="reference-author">- Dawid Mędrek</div>
+                <div class="reference-position">CEO @ PushPushGo</div>
+            </div>
+            <div class="carousel-item">
+                <i>"Marek’s creativity and problem-solving skills were crucial to our sales process efficiency, driving positive outcomes and long-term improvements."</i>
+                <div class="reference-author">- Aleksander Uchto</div>
+                <div class="reference-position">Chief Sales Officer @ Divante</div>
+            </div>
         </div>
-        <div class="reference-item">
-            <i>"Marek’s creativity and problem-solving skills were crucial to our sales process efficiency, driving positive outcomes and long-term improvements."</i>
-            <div class="reference-author">- Aleksander Uchto</div>
-            <div class="reference-position">Chief Sales Officer @ Divante</div>
-        </div>
+        <!-- Arrows -->
+        <span class="carousel-arrow left" id="leftArrow">&#10094;</span>
+        <span class="carousel-arrow right" id="rightArrow">&#10095;</span>
     </div>
 </div>
 
-<!-- JavaScript for toggling references display -->
+<!-- JavaScript for toggling and carousel functionality -->
 <script>
     const referencesButton = document.getElementById('referencesButton');
-    const referencesContainer = document.getElementById('referencesContainer');
+    const carouselContainer = document.getElementById('carouselContainer');
+    const carouselWrapper = document.getElementById('carouselWrapper');
+    const leftArrow = document.getElementById('leftArrow');
+    const rightArrow = document.getElementById('rightArrow');
+    let currentIndex = 0;
 
-    // Toggle the display of the references container
+    // Toggle the display of the carousel
     referencesButton.addEventListener('click', () => {
-        referencesContainer.classList.toggle('show');
-        if (referencesContainer.classList.contains('show')) {
-            referencesContainer.style.display = 'flex';
-        } else {
-            referencesContainer.style.display = 'none';
-        }
+        carouselContainer.classList.toggle('show');
+    });
+
+    // Function to update the carousel position
+    function updateCarousel() {
+        const offset = -currentIndex * 100;
+        carouselWrapper.style.transform = `translateX(${offset}%)`;
+    }
+
+    // Left arrow click event
+    leftArrow.addEventListener('click', () => {
+        currentIndex = (currentIndex > 0) ? currentIndex - 1 : carouselWrapper.children.length - 1;
+        updateCarousel();
+    });
+
+    // Right arrow click event
+    rightArrow.addEventListener('click', () => {
+        currentIndex = (currentIndex < carouselWrapper.children.length - 1) ? currentIndex + 1 : 0;
+        updateCarousel();
     });
 </script>
 
