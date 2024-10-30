@@ -65,23 +65,18 @@
         }
         /* Carousel style */
         .carousel-container {
-            display: none;
             position: relative;
             width: 90%;
             max-width: 500px;
-            height: 220px;
             margin: 20px auto;
             overflow: hidden;
             opacity: 0;
-            transition: opacity 0.6s ease, max-height 0.6s ease;
-            max-height: 0;
+            transition: opacity 0.6s ease, height 0.6s ease;
+            height: 0;
         }
         .carousel-container.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
             opacity: 1;
-            max-height: 250px;
+            height: 250px;
         }
         .carousel-wrapper {
             display: flex;
@@ -100,7 +95,7 @@
             border: 1px solid rgba(85, 85, 85, 0.6);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             word-wrap: break-word;
-            white-space: normal; /* zapewnia prawidłowe zawijanie */
+            white-space: normal;
         }
         .carousel-item i {
             font-style: italic;
@@ -127,6 +122,7 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             border: none;
+            display: inline-block;
         }
         .carousel-button:hover {
             background-color: rgba(255, 255, 255, 0.3);
