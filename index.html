@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marek Grabowski | Business Development Consultant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             display: flex;
@@ -11,9 +15,10 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
-            color: #333;
-            background-color: #f9f9f9;
+            font-family: 'Roboto', sans-serif;
+            color: #fff;
+            background: linear-gradient(135deg, #2c3e50, #34495e, #1c2833);
+            background-size: cover;
         }
         .container {
             text-align: center;
@@ -21,20 +26,26 @@
             padding: 20px;
         }
         h1 {
-            font-size: 2em;
+            font-size: 2.5em;
             margin: 0;
+            font-weight: 500;
         }
         p {
             margin: 10px 0 20px;
             font-size: 1.2em;
+            font-weight: 300;
         }
-        a {
-            color: #0073e6;
-            text-decoration: none;
-            font-weight: bold;
+        .icons {
+            margin-top: 20px;
         }
-        a:hover {
-            text-decoration: underline;
+        .icons a {
+            color: #fff;
+            margin: 0 15px;
+            font-size: 1.5em;
+            transition: color 0.3s;
+        }
+        .icons a:hover {
+            color: #1abc9c;
         }
     </style>
 </head>
@@ -43,10 +54,10 @@
         <h1>Marek Grabowski</h1>
         <p>Business Professional</p>
         <p>Helping businesses optimize sales strategies and grow through practical, data-driven solutions.</p>
-        <p>
-            <a href="https://www.linkedin.com/in/marek-grabowski1/" target="_blank">LinkedIn</a> |
-            <a href="mailto:marek@grvbowski.com">Email Me</a>
-        </p>
+        <div class="icons">
+            <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank"><i class="fab fa-linkedin"></i></a>
+            <a href="mailto:marek@grvbowski.com"><i class="fas fa-envelope"></i></a>
+        </div>
     </div>
 </body>
 </html>
