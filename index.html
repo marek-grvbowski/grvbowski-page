@@ -65,23 +65,18 @@
         }
         /* Carousel style */
         .carousel-container {
-            display: none;
             position: relative;
             width: 90%;
             max-width: 500px;
-            height: 220px;
+            height: 0;
             margin: 20px auto;
             overflow: hidden;
             opacity: 0;
-            transition: opacity 0.6s ease, max-height 0.6s ease;
-            max-height: 0;
+            transition: opacity 0.8s ease, height 0.8s ease;
         }
         .carousel-container.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            height: 250px;
             opacity: 1;
-            max-height: 250px;
         }
         .carousel-wrapper {
             display: flex;
@@ -115,21 +110,21 @@
             font-size: 0.9em;
             color: #b0b0b0;
         }
-        /* Arrow */
-        .carousel-arrow {
+        /* New navigation button */
+        .carousel-button {
             position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.5em; /* Smaller size */
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
             color: #fff;
+            font-size: 1.2em;
+            padding: 5px 15px;
+            border-radius: 20px;
             cursor: pointer;
-            background-color: rgba(0, 0, 0, 0.3);
-            padding: 5px 8px;
-            border-radius: 50%;
             transition: background-color 0.3s ease;
-            right: 20px; /* Shifted left */
         }
-        .carousel-arrow:hover {
+        .carousel-button:hover {
             background-color: rgba(255, 255, 255, 0.3);
         }
     </style>
@@ -163,8 +158,8 @@
                 <div class="reference-position">Chief Sales Officer @ Divante</div>
             </div>
         </div>
-        <span class="carousel-arrow right" id="rightArrow">&#10095;</span>
     </div>
+    <button class="carousel-button" id="nextButton">Next</button>
 </div>
 
 <!-- JavaScript for toggling and carousel functionality -->
@@ -172,19 +167,12 @@
     const referencesButton = document.getElementById('referencesButton');
     const carouselContainer = document.getElementById('carouselContainer');
     const carouselWrapper = document.getElementById('carouselWrapper');
-    const rightArrow = document.getElementById('rightArrow');
+    const nextButton = document.getElementById('nextButton');
     let currentIndex = 0;
 
     // Toggle the display of the carousel
     referencesButton.addEventListener('click', () => {
         carouselContainer.classList.toggle('show');
-        if (carouselContainer.classList.contains('show')) {
-            carouselContainer.style.maxHeight = '250px';
-            carouselContainer.style.opacity = '1';
-        } else {
-            carouselContainer.style.maxHeight = '0';
-            carouselContainer.style.opacity = '0';
-        }
     });
 
     // Function to update the carousel position
@@ -193,8 +181,8 @@
         carouselWrapper.style.transform = `translateX(${offset}%)`;
     }
 
-    // Right arrow click event
-    rightArrow.addEventListener('click', () => {
+    // Next button click event
+    nextButton.addEventListener('click', () => {
         currentIndex = (currentIndex < carouselWrapper.children.length - 1) ? currentIndex + 1 : 0;
         updateCarousel();
     });
