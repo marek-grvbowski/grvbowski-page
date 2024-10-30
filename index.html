@@ -26,7 +26,7 @@
             padding: 20px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Subtle highlight for the whole section */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         .profile-pic {
             width: 150px;
@@ -61,7 +61,7 @@
             cursor: pointer;
         }
         .icons a:hover {
-            color: #FFA07A; /* Bladopomarańczowy */
+            color: #FFA07A;
         }
         /* Carousel style */
         .carousel-container {
@@ -72,6 +72,7 @@
             height: 220px;
             margin: 20px auto;
             overflow: hidden;
+            opacity: 0;
             transition: opacity 0.6s ease, max-height 0.6s ease;
             max-height: 0;
         }
@@ -97,7 +98,7 @@
             font-family: 'Montserrat', sans-serif;
             margin: 0 5px;
             border: 1px solid rgba(85, 85, 85, 0.6);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Highlight active text area */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             word-wrap: break-word;
         }
         .carousel-item i {
@@ -119,14 +120,14 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 2em;
+            font-size: 1.5em; /* Smaller size */
             color: #fff;
             cursor: pointer;
             background-color: rgba(0, 0, 0, 0.3);
-            padding: 5px 10px;
+            padding: 5px 8px;
             border-radius: 50%;
             transition: background-color 0.3s ease;
-            right: 10px;
+            right: 20px; /* Shifted left */
         }
         .carousel-arrow:hover {
             background-color: rgba(255, 255, 255, 0.3);
@@ -177,6 +178,13 @@
     // Toggle the display of the carousel
     referencesButton.addEventListener('click', () => {
         carouselContainer.classList.toggle('show');
+        if (carouselContainer.classList.contains('show')) {
+            carouselContainer.style.maxHeight = '250px';
+            carouselContainer.style.opacity = '1';
+        } else {
+            carouselContainer.style.maxHeight = '0';
+            carouselContainer.style.opacity = '0';
+        }
     });
 
     // Function to update the carousel position
