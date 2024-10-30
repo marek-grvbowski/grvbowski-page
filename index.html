@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marek Grabowski | Business Professional</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* Global styles */
         body {
             font-family: 'DM Serif Display', serif;
             color: #fff;
@@ -15,25 +17,10 @@
             align-items: center;
             margin: 0;
         }
-        nav {
-            background-color: #333;
-            width: 100%;
-            text-align: center;
-            padding: 10px 0;
-        }
-        nav a {
-            color: #fff;
-            margin: 0 15px;
-            text-decoration: none;
-            font-size: 1.2em;
-        }
-        nav a:hover {
-            color: #1abc9c;
-        }
         .container {
-            max-width: 800px;
             text-align: center;
-            margin-top: 50px;
+            max-width: 600px;
+            padding: 20px;
         }
         h1 {
             font-size: 2.5em;
@@ -42,21 +29,149 @@
         p {
             font-size: 1.2em;
         }
+        .icons {
+            margin-top: 20px;
+        }
+        .icons a {
+            color: #fff;
+            margin: 0 15px;
+            font-size: 1.5em;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        .icons a:hover {
+            color: #1abc9c;
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2c2c2c;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .close-btn {
+            align-self: flex-end;
+            font-size: 1.8em;
+            color: #ff4c4c;
+            cursor: pointer;
+            font-weight: bold;
+            background-color: transparent;
+            border: none;
+        }
+        .reference, form {
+            margin-top: 20px;
+        }
+        input, textarea {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px;
+            font-size: 1em;
+            background-color: #1abc9c;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-<nav>
-    <a href="index.html">Home</a>
-    <a href="about.html">About Me</a>
-    <a href="references.html">References</a>
-    <a href="contact.html">Contact</a>
-</nav>
-
 <div class="container">
-    <h1>Welcome to My Professional Profile</h1>
-    <p>Explore my experience, skills, and recommendations from past collaborations. Feel free to reach out for business inquiries or consultations.</p>
+    <h1>Marek Grabowski</h1>
+    <p>Business Professional</p>
+    <p>Helping businesses optimize sales strategies and grow through practical, data-driven solutions.</p>
+    <div class="icons">
+        <!-- Calendar button as before -->
+        <a id="calendarButton" title="Book an appointment"><i class="fas fa-calendar-alt"></i></a>
+        <!-- New icons for References and Contact -->
+        <a id="referencesButton" title="View References"><i class="fas fa-quote-right"></i></a>
+        <a id="contactButton" title="Contact"><i class="fas fa-envelope"></i></a>
+        <a href="https://www.linkedin.com/in/marek-grabowski1" target="_blank"><i class="fab fa-linkedin"></i></a>
+    </div>
 </div>
+
+<!-- Modal for References -->
+<div id="referencesModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('referencesModal')">&times;</button>
+        <h2>References</h2>
+        <div class="reference">
+            <p>"Marek significantly contributed to our growth across European markets. His leadership, initiative, and strategic insight made a lasting impact on our team."</p>
+            <p><strong>Dawid Mędrek, CEO, PushPushGo</strong></p>
+        </div>
+        <div class="reference">
+            <p>"Marek’s creativity and problem-solving skills were crucial to our sales process efficiency, driving positive outcomes and long-term improvements."</p>
+            <p><strong>Aleksander Uchto, Chief Sales Officer, Divante</strong></p>
+        </div>
+        <p>Full references available upon request.</p>
+    </div>
+</div>
+
+<!-- Modal for Contact Form -->
+<div id="contactModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('contactModal')">&times;</button>
+        <h2>Contact Me</h2>
+        <form action="mailto:marek@grvbowski.com" method="POST" enctype="text/plain">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="email" name="email" placeholder="Your Email" required>
+            <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
+            <button type="submit">Send Message</button>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript for modals -->
+<script>
+    const calendarButton = document.getElementById('calendarButton');
+    const referencesButton = document.getElementById('referencesButton');
+    const contactButton = document.getElementById('contactButton');
+    const referencesModal = document.getElementById('referencesModal');
+    const contactModal = document.getElementById('contactModal');
+
+    // Event listeners to open modals
+    referencesButton.addEventListener('click', () => referencesModal.style.display = 'flex');
+    contactButton.addEventListener('click', () => contactModal.style.display = 'flex');
+
+    // Function to close modals
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Close modals when clicking outside of them
+    window.onclick = function(event) {
+        if (event.target == referencesModal) {
+            closeModal('referencesModal');
+        }
+        if (event.target == contactModal) {
+            closeModal('contactModal');
+        }
+    }
+</script>
 
 </body>
 </html>
