@@ -29,6 +29,23 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
+        .form-container {
+            width: 100%;
+            max-width: 500px; /* Dopasuj szerokość według potrzeb */
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            overflow: visible; /* Zapobiega obcinaniu zawartości */
+        }
+
+        /* Zwiększenie marginesów dla lepszej czytelności */
+        form label, form input, form textarea, form .g-recaptcha, form input[type="submit"] {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+        }
         .profile-pic {
             width: 150px;
             height: 150px;
@@ -218,7 +235,7 @@ iframe {
 </div>
 
     <!-- Contact Form Section -->
-    <div class="toggle-container" id="contactContainer">
+   <div class="form-container">
     <p>Leave a message:</p>
     <form action="https://still-art-17bc.mgrabowski495.workers.dev/" method="POST">
         <label for="name">Name:</label><br>
