@@ -160,6 +160,22 @@ iframe {
 border-radius: 8px;
 background-color: #ffffff;
 }
+    textarea#message {
+    width: 100%; /* Pole zajmuje pełną szerokość dostępnego kontenera */
+    box-sizing: border-box; /* Zapewnia, że padding i border są uwzględnione w szerokości */
+    resize: vertical; /* Pozwala użytkownikowi na zmianę wysokości, ale nie szerokości */
+}
+input[type="text"],
+input[type="email"],
+textarea {
+    background-color: #e0e0e0; /* Ciemniejszy szary */
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.3s ease;
+}
 </style>
 </head>
 <body>
