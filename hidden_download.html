@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Download button</title>
     <link rel="stylesheet" href="style.css"> <!-- Link do istniejącego stylu -->
-    <style>
+   <style>
 /* Tło strony */
 body {
     display: flex;
@@ -24,25 +24,25 @@ body {
 /* Kontener z treścią */
 .container {
     text-align: center;
-    max-width: 700px; /* Zwiększenie szerokości */
-    padding: 40px; /* Więcej przestrzeni */
+    max-width: 700px;
+    padding: 40px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px; /* Mocniej zaokrąglone rogi */
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); /* Mocniejszy cień */
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Nagłówek */
 h1 {
-    font-size: 3em; /* Większy nagłówek */
-    margin: 0;
-    font-weight: 700; /* Pogrubienie */
+    font-size: 3em;
+    margin: 0 0 10px; /* Mniejszy odstęp poniżej nagłówka */
+    font-weight: 700;
     letter-spacing: 1.2px;
     line-height: 1.2;
 }
 
 /* Tekst */
 p {
-    margin: 20px 0;
+    margin: 10px 0 30px; /* Większy odstęp poniżej tekstu */
     font-size: 1.3em;
     font-weight: 300;
     line-height: 1.4;
@@ -51,29 +51,29 @@ p {
 /* Przycisk */
 .btn-download {
     display: inline-block;
-    padding: 15px 30px; /* Większy przycisk */
+    padding: 15px 30px;
     font-size: 1.3em;
     font-family: 'DM Serif Display', serif;
-    background: linear-gradient(135deg, #FFA07A, #FF8C66); /* Gradient pomarańczowy */
-    color: #1a1a1a; /* Ciemnoszary tekst */
+    background: linear-gradient(135deg, #FFA07A, #FF8C66);
+    color: #1a1a1a;
     text-decoration: none;
-    border: 2px solid #FFA07A; /* Subtelne obramowanie */
-    border-radius: 30px; /* Mocniej zaokrąglone rogi */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Cień przycisku */
+    border: 2px solid #FFA07A;
+    border-radius: 30px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
 
 /* Efekt hover */
 .btn-download:hover {
-    background: linear-gradient(135deg, #FF8C66, #FF6A45); /* Zmiana gradientu */
-    transform: scale(1.1); /* Powiększenie przycisku */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); /* Mocniejszy cień */
+    background: linear-gradient(135deg, #FF8C66, #FF6A45);
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Efekt kliknięcia */
 .btn-download:active {
-    transform: scale(1.05); /* Lekki skok w dół */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Zmniejszenie cienia */
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 </style>
 </head>
