@@ -1,33 +1,45 @@
 <!DOCTYPE html>
 <html lang="pl">
-  <meta name="robots" content="noindex">
-  <style>
-    .btn {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-}
-
-.btn:hover {
-    background-color: #0056b3;
-}
-  </style>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pobierz CV</title>
-    <link rel="stylesheet" href="style.css"> <!-- Jeśli masz plik CSS -->
+    <title>Download button</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link do istniejącego stylu -->
+    <style>
+        /* Dodatkowe style specyficzne dla tej strony */
+        .download-container {
+            max-width: 600px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .btn-download {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-family: 'DM Serif Display', serif;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-download:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+    </style>
 </head>
 <body>
-    <div style="text-align: center; margin-top: 50px;">
-        <h1>Pobierz moje CV</h1>
-        <p>Kliknij poniższy przycisk, aby pobrać moje CV w formacie PDF.</p>
-        <a href="downloads/Resume_Grabowski.pdf" download class="btn">Pobierz CV</a>
+    <div class="container">
+        <div class="download-container">
+            <h1>Click the button</h1>
+            <p>Check out Grabowski's experience.</p>
+            <a href="downloads/Resume_Grabowski.pdf" download class="btn-download">Resume button</a>
+        </div>
     </div>
 </body>
 </html>
