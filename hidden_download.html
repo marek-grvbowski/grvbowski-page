@@ -6,39 +6,83 @@
     <title>Download button</title>
     <link rel="stylesheet" href="style.css"> <!-- Link do istniejącego stylu -->
     <style>
-        /* Dodatkowe style specyficzne dla tej strony */
-        .download-container {
-            max-width: 600px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            text-align: center;
-        }
-        .btn-download {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            text-decoration: none;
-            font-size: 1.2em;
-            font-family: 'DM Serif Display', serif;
-            border-radius: 5px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-        .btn-download:hover {
-            background-color: #0056b3;
-            transform: scale(1.05);
-        }
-    </style>
+/* Tło strony */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'DM Serif Display', serif;
+    color: #fff;
+    background: linear-gradient(135deg, #1a1a1a, #2e2e2e);
+    background-size: cover;
+    text-align: center;
+}
+
+/* Kontener z treścią */
+.container {
+    text-align: center;
+    max-width: 700px; /* Zwiększenie szerokości */
+    padding: 40px; /* Więcej przestrzeni */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px; /* Mocniej zaokrąglone rogi */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); /* Mocniejszy cień */
+}
+
+/* Nagłówek */
+h1 {
+    font-size: 3em; /* Większy nagłówek */
+    margin: 0;
+    font-weight: 700; /* Pogrubienie */
+    letter-spacing: 1.2px;
+    line-height: 1.2;
+}
+
+/* Tekst */
+p {
+    margin: 20px 0;
+    font-size: 1.3em;
+    font-weight: 300;
+    line-height: 1.4;
+}
+
+/* Przycisk */
+.btn-download {
+    display: inline-block;
+    padding: 15px 30px; /* Większy przycisk */
+    font-size: 1.3em;
+    font-family: 'DM Serif Display', serif;
+    background: linear-gradient(135deg, #FFA07A, #FF8C66); /* Gradient pomarańczowy */
+    color: #1a1a1a; /* Ciemnoszary tekst */
+    text-decoration: none;
+    border: 2px solid #FFA07A; /* Subtelne obramowanie */
+    border-radius: 30px; /* Mocniej zaokrąglone rogi */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3); /* Cień przycisku */
+    transition: all 0.3s ease;
+}
+
+/* Efekt hover */
+.btn-download:hover {
+    background: linear-gradient(135deg, #FF8C66, #FF6A45); /* Zmiana gradientu */
+    transform: scale(1.1); /* Powiększenie przycisku */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); /* Mocniejszy cień */
+}
+
+/* Efekt kliknięcia */
+.btn-download:active {
+    transform: scale(1.05); /* Lekki skok w dół */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Zmniejszenie cienia */
+}
+</style>
 </head>
 <body>
     <div class="container">
         <div class="download-container">
             <h1>Click the button</h1>
             <p>Check out Grabowski's experience.</p>
-            <a href="downloads/Resume_Grabowski.pdf" download class="btn-download">Resume button</a>
+            <a href="downloads/Resume_Grabowski.pdf" download class="btn-download">Get resume</a>
         </div>
     </div>
 </body>
