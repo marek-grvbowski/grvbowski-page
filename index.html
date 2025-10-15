@@ -6,6 +6,7 @@
 <title>grvbowski.</title>
 <meta name="color-scheme" content="dark" />
 <style>
+  /* --- RESET & BASE --- */
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
@@ -13,12 +14,14 @@
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
   }
 
-  /* Tło + scena */
+  /* --- STAGE --- */
   .stage {
     position: fixed; inset: 0;
     display: grid; place-items: center;
     isolation: isolate;
   }
+
+  /* --- GRAINY BACKGROUND --- */
   .grain {
     position: absolute; inset: -10%;
     pointer-events: none;
@@ -36,32 +39,31 @@
     100% { transform: translate3d(0,0,0) scale(1); }
   }
 
-  /* Stos logo (ostra + rozmyta warstwa) */
-  .logo-stack {
+  /* --- LOGO LAYERS ---
+     .logo-shell   -> tylko parallax (JS zmienia transform)
+     .logo-anim    -> „oddychanie” (CSS animation)
+     .logo         -> fade-in + scale-in (CSS animation)
+  ------------------------------------------------------ */
+  .logo-shell {
     position: relative;
-    width: min(78vw, 720px);
     z-index: 2;
     will-change: transform;
+    transition: transform .12s ease-out;
   }
-
-  /* Oddech/breathing całego stosu */
-  .logo-stack.anim-breathe { animation: float 8s ease-in-out infinite; }
+  .logo-anim {
+    animation: float 8s ease-in-out infinite;
+    will-change: transform;
+  }
   @keyframes float {
     0%, 100% { transform: translateY(0) scale(1); }
     50%      { transform: translateY(-0.6vh) scale(1.015); }
   }
 
-  /* Obie warstwy logo mają ten sam rozmiar */
-  .logo-layer {
+  /* Jeżeli użyjesz <img> z plikiem grvbowski.svg */
+  .logo {
     display: block;
-    width: 100%;
+    width: min(78vw, 720px);
     height: auto;
-  }
-
-  /* Ostra warstwa (na wierzchu) */
-  .logo-clean {
-    position: relative;
-    z-index: 2;
     opacity: 0;
     transform: translateY(8px) scale(.985);
     animation: logoIn .9s cubic-bezier(.2,.8,.2,1) .2s forwards;
@@ -71,35 +73,25 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* Rozmyta warstwa (pod spodem) – odkrywana maską pędzla */
-  .logo-smear {
-    position: absolute; inset: 0;
-    z-index: 1;
-    filter: blur(6px) contrast(105%) saturate(110%);
-    /* maska będzie podmieniana JS-em na dataURL z canvasu */
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-position: 0 0;
-    mask-position: 0 0;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    /* dla kompatybilności */
-    -webkit-mask-image: none;
-    mask-image: none;
+  /* Gdy wkleisz SVG inline, te reguły zapewnią odpowiednie skalowanie */
+  .logo-inline svg {
+    display: block;
+    width: min(78vw, 720px);
+    height: auto;
   }
 
-  /* Hover: delikatny glow */
+  /* Subtelny glow na hover (desktop) */
   @media (hover:hover) {
-    .logo-stack:hover {
+    .logo-shell:hover {
       filter: drop-shadow(0 0 16px rgba(255,255,255,.08))
               drop-shadow(0 0 48px rgba(255,255,255,.04));
     }
   }
 
-  /* Preferencje dostępności */
+  /* Accessibility */
   @media (prefers-reduced-motion: reduce) {
-    .grain, .logo-stack.anim-breathe { animation: none; }
-    .logo-clean { animation: none; opacity: 1; transform: none; }
+    .grain, .logo-anim { animation: none; }
+    .logo { animation: none; opacity: 1; transform: none; }
   }
 </style>
 </head>
@@ -107,145 +99,38 @@
   <div class="stage">
     <div class="grain" aria-hidden="true"></div>
 
-    <div class="logo-stack anim-breathe" id="logoStack">
-      <!-- Rozmyta warstwa (odkrywana maską) -->
-      <img class="logo-layer logo-smear" src="grvbowski.svg" alt="" aria-hidden="true" />
-      <!-- Ostra warstwa (na wierzchu) -->
-      <img class="logo-layer logo-clean" src="grvbowski.svg" alt="grvbowski." />
+    <!-- Parallax shell -->
+    <div class="logo-shell">
+      <!-- Breathing / float animation -->
+      <div class="logo-anim logo-inline">
+        <!-- OPCJA A: obraz jako plik -->
+        <img class="logo" src="grvbowski.svg" alt="grvbowski." />
+
+        <!-- OPCJA B (zamiast <img>): wklej inline swoje <svg ...>...</svg>
+        <svg class="force-white" viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+          ...tutaj Twoje ścieżki...
+        </svg>
+        -->
+      </div>
     </div>
   </div>
 
   <script>
+    // Parallax: działa na .logo-shell, nie psuje animacji CSS wewnątrz
     (function () {
-      const stack = document.getElementById('logoStack');
-      const smear = stack.querySelector('.logo-smear');
-      const clean = stack.querySelector('.logo-clean');
-
-      // Kanwa do maski (biały = widoczne, czarny = niewidoczne)
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = 0, h = 0;
-      let lastX = null, lastY = null;
-      let animId = null;
-
-      // Parametry pędzla (dripper)
-      const BRUSH_RADIUS = 36;        // promień główny
-      const SOFT_EDGE = 0.6;          // miękkość krawędzi (0-1)
-      const FADE_ALPHA = 0.06;        // tempo wygaszania śladu / klatka
-      const DRIP_STRETCH = 0.35;      // „smuga” wzdłuż ruchu
-
-      function resize() {
-        // Dopasuj maskę do rozmiaru renderowanego obrazka
-        const rect = stack.getBoundingClientRect();
-        w = Math.max(2, Math.round(rect.width));
-        h = Math.max(2, Math.round(rect.height));
-        if (canvas.width !== w || canvas.height !== h) {
-          canvas.width = w;
-          canvas.height = h;
-          // start: całkiem czarna maska = nic nie widać
-          ctx.fillStyle = 'rgba(0,0,0,1)';
-          ctx.fillRect(0, 0, w, h);
-          updateMask();
-        }
-      }
-
-      function updateMask() {
-        // Ustaw maskę z canvasu jako dataURL
-        // (luminancja obrazu jest brana jako maska)
-        const url = canvas.toDataURL('image/png');
-        smear.style.webkitMaskImage = `url(${url})`;
-        smear.style.maskImage = `url(${url})`;
-      }
-
-      // Miękki pędzel z radialnym gradientem (i lekką „smugą”)
-      function drawBrush(x, y, dx = 0, dy = 0) {
-        const r = BRUSH_RADIUS;
-        // smuga eliptyczna w kierunku ruchu
-        const angle = Math.atan2(dy, dx);
-        const len = Math.min(Math.hypot(dx, dy), r * 2) * DRIP_STRETCH;
-
-        // Elipsa jako smuga
-        if (len > 0.5) {
-          ctx.save();
-          ctx.translate(x, y);
-          ctx.rotate(angle);
-          const grd2 = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 1.4);
-          grd2.addColorStop(0, 'rgba(255,255,255,0.8)');
-          grd2.addColorStop(SOFT_EDGE, 'rgba(255,255,255,0.35)');
-          grd2.addColorStop(1, 'rgba(255,255,255,0.0)');
-          ctx.fillStyle = grd2;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, r + len, r * 0.8, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-
-        // Główna kropka pędzla
-        const grd = ctx.createRadialGradient(x, y, 0, x, y, r);
-        grd.addColorStop(0, 'rgba(255,255,255,1)');
-        grd.addColorStop(SOFT_EDGE, 'rgba(255,255,255,0.5)');
-        grd.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.fillStyle = grd;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      function fadeMask() {
-        // Delikatnie przyciemnia całą maskę – ślad znika po chwili
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = `rgba(0,0,0,${FADE_ALPHA})`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
-      function animate() {
-        fadeMask();
-        updateMask();
-        animId = requestAnimationFrame(animate);
-      }
-
-      function start() {
-        if (!animId) animId = requestAnimationFrame(animate);
-      }
-      function stop() {
-        if (animId) cancelAnimationFrame(animId);
-        animId = null;
-      }
-
-      function pointerPos(e) {
-        const rect = stack.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width * canvas.width;
-        const y = (e.clientY - rect.top) / rect.height * canvas.height;
-        return { x, y };
-      }
-
-      function onMove(e) {
+      const shell = document.querySelector('.logo-shell');
+      if (!shell) return;
+      const strength = 8; // px
+      let raf = null;
+      window.addEventListener('mousemove', (e) => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const { x, y } = pointerPos(e);
-        if (lastX == null) { lastX = x; lastY = y; }
-        const dx = x - lastX, dy = y - lastY;
-        // Rysuj punkty po linii ruchu co BRUSH_RADIUS/2 dla ciągłości pociągnięcia
-        const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / (BRUSH_RADIUS * 0.5)));
-        for (let i = 1; i <= steps; i++) {
-          const sx = lastX + (dx * i / steps);
-          const sy = lastY + (dy * i / steps);
-          drawBrush(sx, sy, dx, dy);
-        }
-        lastX = x; lastY = y;
-      }
-
-      function onEnter(e) { lastX = lastY = null; start(); }
-      function onLeave(e) { lastX = lastY = null; /* nie zatrzymujemy, żeby ślad się wygasił */ }
-
-      // Init
-      resize();
-      window.addEventListener('resize', resize);
-      stack.addEventListener('mousemove', onMove, { passive: true });
-      stack.addEventListener('mouseenter', onEnter);
-      stack.addEventListener('mouseleave', onLeave);
-
-      // Safety: jeśli user nie rusza myszą, i tak zainicjuj maskę po starcie
-      updateMask();
+        const x = (e.clientX / window.innerWidth - .5) * 2;
+        const y = (e.clientY / window.innerHeight - .5) * 2;
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          shell.style.transform = `translate3d(${(x*strength).toFixed(2)}px, ${(y*strength).toFixed(2)}px, 0)`;
+        });
+      }, { passive: true });
     })();
   </script>
 </body>
