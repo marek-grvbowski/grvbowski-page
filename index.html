@@ -1,137 +1,209 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>grvbowski.</title>
-<meta name="color-scheme" content="dark" />
-<style>
-  /* --- RESET & BASE --- */
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin: 0; background: #000; color: #fff; overflow: hidden;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-  }
-
-  /* --- STAGE --- */
-  .stage {
-    position: fixed; inset: 0;
-    display: grid; place-items: center;
-    isolation: isolate;
-  }
-
-  /* --- GRAINY BACKGROUND --- */
-  .grain {
-    position: absolute; inset: -10%;
-    pointer-events: none;
-    mix-blend-mode: soft-light;
-    opacity: .15;
-    filter: contrast(140%) brightness(110%);
-    animation: drift 12s linear infinite;
-    background:
-      radial-gradient(1000px 1000px at 50% 50%, rgba(255,255,255,.04), transparent 50%) center/cover no-repeat;
-    z-index: 0;
-  }
-  @keyframes drift {
-    0%   { transform: translate3d(0,0,0) scale(1); }
-    50%  { transform: translate3d(-2%, -1.5%, 0) scale(1.03); }
-    100% { transform: translate3d(0,0,0) scale(1); }
-  }
-
-  /* --- LOGO LAYERS ---
-     .logo-shell   -> tylko parallax (JS zmienia transform)
-     .logo-anim    -> „oddychanie” (CSS animation)
-     .logo         -> fade-in + scale-in (CSS animation)
-  ------------------------------------------------------ */
-  .logo-shell {
-    position: relative;
-    z-index: 2;
-    will-change: transform;
-    transition: transform .12s ease-out;
-  }
-  .logo-anim {
-    animation: float 8s ease-in-out infinite;
-    will-change: transform;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(-0.6vh) scale(1.015); }
-  }
-
-  /* Jeżeli użyjesz <img> z plikiem grvbowski.svg */
-  .logo {
-    display: block;
-    width: min(78vw, 720px);
-    height: auto;
-    opacity: 0;
-    transform: translateY(8px) scale(.985);
-    animation: logoIn .9s cubic-bezier(.2,.8,.2,1) .2s forwards;
-    image-rendering: -webkit-optimize-contrast;
-  }
-  @keyframes logoIn {
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  /* Gdy wkleisz SVG inline, te reguły zapewnią odpowiednie skalowanie */
-  .logo-inline svg {
-    display: block;
-    width: min(78vw, 720px);
-    height: auto;
-  }
-
-  /* Subtelny glow na hover (desktop) */
-  @media (hover:hover) {
-    .logo-shell:hover {
-      filter: drop-shadow(0 0 16px rgba(255,255,255,.08))
-              drop-shadow(0 0 48px rgba(255,255,255,.04));
-    }
-  }
-
-  /* Accessibility */
-  @media (prefers-reduced-motion: reduce) {
-    .grain, .logo-anim { animation: none; }
-    .logo { animation: none; opacity: 1; transform: none; }
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Marek Grabowski — Strona wizytówka</title>
+  <meta name="description" content="Doradztwo biznesowe. Strategia, wzrost, procesy.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="script.js"></script>
 </head>
-<body>
-  <div class="stage">
-    <div class="grain" aria-hidden="true"></div>
+<body data-tone="deep">
+  <div id="progress"></div>
 
-    <!-- Parallax shell -->
-    <div class="logo-shell">
-      <!-- Breathing / float animation -->
-      <div class="logo-anim logo-inline">
-        <!-- OPCJA A: obraz jako plik -->
-        <img class="logo" src="grvbowski.svg" alt="grvbowski." />
+  <!-- Floating burger (no background) -->
+  <button id="burgerFab" class="burger-fab" aria-label="Menu / przejdź do sekcji startowej" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
 
-        <!-- OPCJA B (zamiast <img>): wklej inline swoje <svg ...>...</svg>
-        <svg class="force-white" viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-          ...tutaj Twoje ścieżki...
-        </svg>
-        -->
+  <!-- Minimal nav (no bar), right-aligned; visible only on HERO -->
+  <header id="siteHeader" class="site-header header--hidden" aria-hidden="true">
+    <nav id="nav" class="nav" aria-label="Główna nawigacja">
+      <a href="#hero" data-nav>Start</a>
+      <a href="#about" data-nav>O&nbsp;mnie</a>
+      <a href="#services" data-nav>Usługi</a>
+      <a href="#projects" data-nav>Projekty</a>
+      <a href="#request" data-nav>Request&nbsp;my&nbsp;CV</a>
+      <a href="#contact" data-nav>Kontakt</a>
+    </nav>
+  </header>
+
+  <!-- Background -->
+  <div class="bg" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <main>
+    <!-- INTRO -->
+    <section id="intro" class="section intro" data-animate data-tone="deep" aria-label="Intro">
+      <div class="container intro-inner">
+        <div class="intro-logo">grvbowski<span class="dot">.</span></div>
+        <div class="intro-hint">scroll / space / click</div>
       </div>
-    </div>
-  </div>
+      <a class="scroll-hint" href="#hero" aria-label="Przewiń w dół">↓</a>
+    </section>
 
-  <script>
-    // Parallax: działa na .logo-shell, nie psuje animacji CSS wewnątrz
-    (function () {
-      const shell = document.querySelector('.logo-shell');
-      if (!shell) return;
-      const strength = 8; // px
-      let raf = null;
-      window.addEventListener('mousemove', (e) => {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const x = (e.clientX / window.innerWidth - .5) * 2;
-        const y = (e.clientY / window.innerHeight - .5) * 2;
-        cancelAnimationFrame(raf);
-        raf = requestAnimationFrame(() => {
-          shell.style.transform = `translate3d(${(x*strength).toFixed(2)}px, ${(y*strength).toFixed(2)}px, 0)`;
-        });
-      }, { passive: true });
-    })();
-  </script>
+    <!-- HERO -->
+    <section id="hero" class="section hero" data-animate data-tone="deep">
+      <div class="container grid-2">
+        <div>
+          <p class="kicker">strategy × execution</p>
+          <h1 class="display">Marek<br>Grabowski</h1>
+          <p class="lede">Porządkuję sprzedaż i marketing, usprawniam procesy i dowożę wyniki — konkretnie, bez korpomowy.</p>
+          <div class="cta">
+            <a class="btn primary" href="#request">Request my CV</a>
+            <a class="btn outline" href="#contact">Napisz do mnie</a>
+          </div>
+          <ul class="chips">
+            <li>growth</li><li>ops</li><li>sales enablement</li><li>e‑commerce</li>
+          </ul>
+        </div>
+        <aside class="hero-aside" data-animate>
+          <div class="glass card">
+            <h3>W skrócie</h3>
+            <ul class="tick">
+              <li>12+ lat doświadczenia</li>
+              <li>projekty w PL & EU</li>
+              <li>strategia → wykonanie</li>
+            </ul>
+            <p class="fine">Preferuję krótkie cykle, przejrzystą komunikację i jasne KPI.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section about" data-animate data-tone="charcoal">
+      <div class="container narrow">
+        <h2>O mnie</h2>
+        <p class="lead">Łączę <strong>strategię</strong> z <strong>operacją</strong>. Lubię porządkować procesy, usuwać tarcia i prowadzić zespół do mierzalnego wyniku.</p>
+        <div class="split">
+          <p>Pracowałem z zespołami sprzedaży, marketingu i produktu. Moje podejście jest pragmatyczne — szybko walidujemy hipotezy, automatyzujemy powtarzalne elementy i ustawiamy metryki, które naprawdę mają znaczenie.</p>
+          <p>Jeśli szukasz rozmowy bez zbędnego żargonu, za to z propozycją konkretnego planu — chętnie opowiem, jak możemy to poukładać.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services" class="section services" data-animate data-tone="slate">
+      <div class="container">
+        <h2>Usługi</h2>
+        <div class="services-grid">
+          <article class="service card" data-animate>
+            <div class="service-icon">◎</div>
+            <h3>Consulting strategiczny</h3>
+            <p>Diagnoza, priorytety, roadmapy. Od analizy do wdrożenia z mierzalnymi efektami.</p>
+          </article>
+          <article class="service card" data-animate>
+            <div class="service-icon">▤</div>
+            <h3>Process & Ops</h3>
+            <p>Usprawnianie lejka, SLA, automatyzacje, playbooki, poprawa czasu cyklu.</p>
+          </article>
+          <article class="service card" data-animate>
+            <div class="service-icon">↗</div>
+            <h3>Growth</h3>
+            <p>Eksperymenty, a/b, pricing, propozycja wartości, kanały akwizycji i retencji.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS / HIGHLIGHTS -->
+    <section id="projects" class="section projects" data-animate data-tone="graphite">
+      <div class="container">
+        <h2>Wybrane efekty</h2>
+        <div class="highlights">
+          <div class="hl card">
+            <div class="big">+650%</div>
+            <p>YoY transakcje w e‑commerce</p>
+          </div>
+          <div class="hl card">
+            <div class="big">2.85%</div>
+            <p>wzrost konwersji</p>
+          </div>
+          <div class="hl card">
+            <div class="big">279.61</div>
+            <p>PLN AOV</p>
+          </div>
+          <div class="hl card">
+            <div class="big">90 dni</div>
+            <p>od audytu do wyniku</p>
+          </div>
+        </div>
+        <p class="fine center">Dane przykładowe z case study; szczegóły chętnie opowiem na rozmowie.</p>
+      </div>
+    </section>
+
+    <!-- REQUEST MY CV -->
+    <section id="request" class="section request" data-animate data-tone="silver">
+      <div class="container grid-2">
+        <div>
+          <h2>Request my CV</h2>
+          <p class="lead">Zostaw kontakt i napisz, czego potrzebujesz — podeślę CV (i opcjonalnie referencje).</p>
+          <form id="cvForm" class="form card">
+            <div class="row">
+              <label for="rName">Imię i nazwisko</label>
+              <input id="rName" name="name" required placeholder="Twoje imię i nazwisko" />
+            </div>
+            <div class="row">
+              <label for="rEmail">Email</label>
+              <input id="rEmail" type="email" name="email" required placeholder="ty@email.com" />
+            </div>
+            <div class="row">
+              <label for="rReason">Powód zapytania</label>
+              <select id="rReason" name="reason" required>
+                <option value="consulting">Konsulting / współpraca</option>
+                <option value="full-profile">Chcę poznać pełne doświadczenie</option>
+                <option value="recruiting">Rekrutacja / headhunting</option>
+                <option value="other">Inne</option>
+              </select>
+            </div>
+            <div class="row">
+              <label for="rMsg">Twoja wiadomość (opcjonalnie)</label>
+              <textarea id="rMsg" name="message" rows="4" placeholder="Kilka zdań o sprawie, kontekście lub wymaganiach"></textarea>
+            </div>
+            <label class="check">
+              <input type="checkbox" id="rRefs" name="with_refs" />
+              <span>Dołącz także referencje</span>
+            </label>
+            <div class="form-actions">
+              <button class="btn primary" type="submit">Wyślij prośbę</button>
+              <button class="btn ghost" type="reset">Wyczyść</button>
+            </div>
+            <p class="fine">Formularz wysyła maila przez Twoją domyślną aplikację pocztową. Żadnych zewnętrznych integracji.</p>
+          </form>
+        </div>
+        <aside class="card">
+          <h3>Co wyślę?</h3>
+          <ul class="tick">
+            <li>CV (PDF)</li>
+            <li>krótkie bio i kluczowe projekty</li>
+            <li>referencje — jeśli zaznaczysz opcję</li>
+          </ul>
+          <p class="fine">Zazwyczaj odpisuję tego samego dnia roboczego.</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section contact" data-animate data-tone="deep">
+      <div class="container narrow">
+        <h2>Kontakt</h2>
+        <p class="lead">Najszybciej: email lub LinkedIn.</p>
+        <div class="links">
+          <a class="chip" href="mailto:marek@grvbowski.com">✉️ Email</a>
+          <a class="chip" href="https://www.linkedin.com/in/grvbowski/" target="_blank" rel="noopener">in/ grvbowski</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>© <span id="year"></span> Marek Grabowski — solidnie, estetycznie, bez zbędnych słów.</small>
+    </div>
+  </footer>
 </body>
 </html>
