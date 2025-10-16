@@ -1,128 +1,211 @@
 // ---------- Helpers ----------
-const $ = (sel, root=document) => root.querySelector(sel);
-const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-// ---------- Progress + scroll‑tied light sweep ----------
+const docEl = document.documentElement;
+const bodyEl = document.body;
 const progress = $("#progress");
-const bg = $(".bg");
-function onScroll() {
-  const h = document.documentElement;
-  const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight);
-  if (progress) progress.style.width = (scrolled * 100).toFixed(2) + "%";
-
-  // Light sweep: map scroll to angle/position
-  const sweep = scrolled * 360; // 0..360deg across the whole page
-  const sx = 35 + Math.sin(scrolled * Math.PI * 2) * 20; // 15% amplitude
-  const sy = 35 + Math.cos(scrolled * Math.PI * 2) * 20;
-  document.documentElement.style.setProperty("--sweep", sweep + "deg");
-  document.documentElement.style.setProperty("--sx", sx.toFixed(1) + "%");
-  document.documentElement.style.setProperty("--sy", sy.toFixed(1) + "%");
-}
-addEventListener("scroll", onScroll, { passive: true });
-onScroll();
-
-// ---------- Reveal + tone + header visibility ----------
-const sections = $$("main > section");
-const navLinks = $$("nav a[data-nav]");
 const header = $("#siteHeader");
-const burgerFab = $("#burgerFab");
+const navLinks = $$("#siteHeader .nav a");
+const ctrlFab = $("#ctrlFab");
 const intro = $("#intro");
 const hero = $("#hero");
-let enableIntroInteractions = () => {};
-let disableIntroInteractions = () => {};
+const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+let prefersReducedMotion = reduceMotionQuery.matches;
+
+if (reduceMotionQuery.addEventListener) {
+  reduceMotionQuery.addEventListener("change", (event) => {
+    prefersReducedMotion = event.matches;
+  });
+}
+
+// ---------- Scroll driven background & progress ----------
+let scrollScheduled = false;
+function updateScrollEffects() {
+  scrollScheduled = false;
+  const max = docEl.scrollHeight - docEl.clientHeight;
+  const scrolled = max > 0 ? docEl.scrollTop / max : 0;
+  if (progress) progress.style.width = (scrolled * 100).toFixed(2) + "%";
+
+  const phase = scrolled * Math.PI * 2;
+  const sx = 45 + Math.sin(phase) * 14;
+  const sy = 45 + Math.cos(phase) * 14;
+  docEl.style.setProperty("--sx", `${sx.toFixed(2)}%`);
+  docEl.style.setProperty("--sy", `${sy.toFixed(2)}%`);
+}
+function requestScrollEffects() {
+  if (scrollScheduled) return;
+  scrollScheduled = true;
+  requestAnimationFrame(updateScrollEffects);
+}
+window.addEventListener("scroll", requestScrollEffects, { passive: true });
+updateScrollEffects();
+
+// ---------- Navigation hover ripple & follow ----------
+navLinks.forEach((link) => {
+  link.dataset.text = link.textContent?.trim() || "";
+});
+const navStates = new WeakMap();
+function ensureNavState(link) {
+  if (!navStates.has(link)) {
+    navStates.set(link, { tx: 0, ty: 0, targetTx: 0, targetTy: 0, rafId: null });
+  }
+  return navStates.get(link);
+}
+function animateLink(link) {
+  const state = ensureNavState(link);
+  const ease = prefersReducedMotion ? 1 : 0.18;
+  state.tx += (state.targetTx - state.tx) * ease;
+  state.ty += (state.targetTy - state.ty) * ease;
+  link.style.setProperty("--tx", `${state.tx.toFixed(2)}px`);
+  link.style.setProperty("--ty", `${state.ty.toFixed(2)}px`);
+  const stillAnimating = !prefersReducedMotion && (Math.abs(state.targetTx - state.tx) > 0.1 || Math.abs(state.targetTy - state.ty) > 0.1);
+  if (stillAnimating) {
+    state.rafId = requestAnimationFrame(() => animateLink(link));
+  } else {
+    state.rafId = null;
+    if (prefersReducedMotion) {
+      link.style.setProperty("--tx", "0px");
+      link.style.setProperty("--ty", "0px");
+    }
+  }
+}
+navLinks.forEach((link) => {
+  link.addEventListener("mousemove", (event) => {
+    const rect = link.getBoundingClientRect();
+    const mx = ((event.clientX - rect.left) / rect.width) * 100;
+    const my = ((event.clientY - rect.top) / rect.height) * 100;
+    link.style.setProperty("--mx", `${mx}%`);
+    link.style.setProperty("--my", `${my}%`);
+
+    const state = ensureNavState(link);
+    if (prefersReducedMotion) {
+      state.targetTx = 0;
+      state.targetTy = 0;
+    } else {
+      state.targetTx = ((mx - 50) / 50) * 6;
+      state.targetTy = ((my - 50) / 50) * 6;
+    }
+    if (!state.rafId) state.rafId = requestAnimationFrame(() => animateLink(link));
+  });
+  link.addEventListener("mouseleave", () => {
+    link.style.removeProperty("--mx");
+    link.style.removeProperty("--my");
+    const state = ensureNavState(link);
+    state.targetTx = 0;
+    state.targetTy = 0;
+    if (!state.rafId && !prefersReducedMotion) {
+      state.rafId = requestAnimationFrame(() => animateLink(link));
+    } else if (prefersReducedMotion) {
+      link.style.setProperty("--tx", "0px");
+      link.style.setProperty("--ty", "0px");
+    }
+  });
+});
+
+// ---------- Smooth anchor scroll ----------
+$$('a[href^="#"]').forEach((anchor) => {
+  anchor.addEventListener("click", (event) => {
+    const id = anchor.getAttribute("href")?.slice(1);
+    const target = id ? document.getElementById(id) : null;
+    if (!target) return;
+    event.preventDefault();
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", `#${id}`);
+  });
+});
+
+// ---------- Section tone / nav highlight / header visibility ----------
+let currentTone = bodyEl.dataset.tone || "deep";
+let currentEffect = bodyEl.dataset.effect || "none";
+let ctrlState = "burger";
+let revertTimer;
+const supportsScrollEnd = "onscrollend" in window;
+let leftIntroOnce = false;
 
 function setHeaderVisible(visible) {
   if (!header) return;
   header.classList.toggle("header--visible", visible);
   header.classList.toggle("header--hidden", !visible);
   header.setAttribute("aria-hidden", String(!visible));
-  // handle burger appearance animation
-  if (burgerFab) {
-    if (visible) {
-      burgerFab.classList.remove("appear");
-    } else {
-      burgerFab.classList.add("appear");
-    }
-  }
 }
-
-const bodyEl = document.body;
-let currentTone = bodyEl.dataset.tone || "deep";
-let currentEffect = bodyEl.dataset.effect || "none";
-let toneReturnTimer;
-
-function applyTone(tone) {
+function setTone(tone) {
   if (!tone || tone === currentTone) return;
   currentTone = tone;
   bodyEl.setAttribute("data-tone", tone);
 }
-
-function applyEffect(effect) {
+function setEffect(effect) {
   const desired = effect || "none";
   if (desired === currentEffect) return;
-  const previous = currentEffect;
   currentEffect = desired;
   bodyEl.setAttribute("data-effect", desired);
-
-  if (desired === "invert") {
-    bodyEl.classList.add("tone-flip");
-    bodyEl.classList.remove("tone-return");
-    if (toneReturnTimer) {
-      clearTimeout(toneReturnTimer);
-      toneReturnTimer = undefined;
-    }
-  } else {
-    if (previous === "invert") {
-      bodyEl.classList.remove("tone-flip");
-      bodyEl.classList.add("tone-return");
-      if (toneReturnTimer) clearTimeout(toneReturnTimer);
-      toneReturnTimer = window.setTimeout(() => {
-        bodyEl.classList.remove("tone-return");
-        toneReturnTimer = undefined;
-      }, 1650);
-    } else {
-      bodyEl.classList.remove("tone-flip");
-      bodyEl.classList.remove("tone-return");
-    }
+}
+function setCtrlState(state) {
+  if (!ctrlFab) return;
+  if (ctrlState === state) return;
+  ctrlState = state;
+  ctrlFab.classList.toggle("is-burger", state === "burger");
+  ctrlFab.classList.toggle("is-arrow", state === "arrow");
+  ctrlFab.setAttribute("aria-expanded", String(state === "arrow"));
+  ctrlFab.setAttribute("aria-label", state === "arrow" ? "Wróć do sekcji intro" : "Przejdź do sekcji głównej");
+}
+function clearRevertTimer() {
+  if (revertTimer) {
+    clearTimeout(revertTimer);
+    revertTimer = undefined;
   }
 }
-const obs = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (!entry.isIntersecting) return;
-    const id = entry.target.id;
-    // nav highlight
-    const nav = navLinks.find(a => a.getAttribute("href") === `#${id}`);
-    navLinks.forEach(a => a.classList.remove("active"));
-    nav?.classList.add("active");
-    // tone
-    const tone = entry.target.dataset.tone;
-    const effect = entry.target.dataset.effect || "none";
-    applyTone(tone);
-    applyEffect(effect);
-    // header only on HERO
-    const onHero = id === "hero";
-    setHeaderVisible(onHero);
+function scheduleBurgerReset() {
+  clearRevertTimer();
+  if (supportsScrollEnd) {
+    const onEnd = () => {
+      setCtrlState("burger");
+      window.removeEventListener("scrollend", onEnd);
+    };
+    window.addEventListener("scrollend", onEnd, { once: true });
+  } else {
+    revertTimer = window.setTimeout(() => {
+      setCtrlState("burger");
+      revertTimer = undefined;
+    }, 460);
+  }
+}
 
-    const onIntroSection = id === "intro";
-    if (burgerFab) {
-      burgerFab.classList.toggle("is-arrow", !onIntroSection);
-      burgerFab.setAttribute(
-        "aria-label",
-        onIntroSection ? "Menu / przejdź do sekcji startowej" : "Wróć do sekcji intro"
-      );
-      burgerFab.setAttribute("aria-expanded", String(!onIntroSection));
+const sections = $$("main > section");
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (!entry.isIntersecting) {
+      if (entry.target === hero) {
+        setHeaderVisible(false);
+        if (!atIntro()) setCtrlState("burger");
+      }
+      return;
+    }
+    const target = entry.target;
+    const id = target.id;
+
+    const nav = navLinks.find((link) => link.getAttribute("href") === `#${id}`);
+    if (nav) {
+      navLinks.forEach((link) => link.classList.remove("active"));
+      nav.classList.add("active");
     }
 
-    if (onIntroSection) {
-      enableIntroInteractions();
-    } else {
-      disableIntroInteractions();
+    setTone(target.dataset.tone);
+    setEffect(target.dataset.effect);
+
+    if (target === hero) {
+      leftIntroOnce = true;
+      setHeaderVisible(true);
+      setCtrlState("arrow");
+    }
+    if (target === intro) {
+      setCtrlState("burger");
     }
   });
 }, { rootMargin: "-55% 0% -35% 0%" });
-sections.forEach(s => obs.observe(s));
+sections.forEach((section) => sectionObserver.observe(section));
 
-// reveal in-view
+// Reveal animations
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
@@ -131,134 +214,85 @@ const revealObserver = new IntersectionObserver((entries) => {
     }
   });
 }, { threshold: 0.12 });
-$$("[data-animate]").forEach(el => revealObserver.observe(el));
+$$("[data-animate]").forEach((el) => revealObserver.observe(el));
 
-// Smooth anchor scroll
-$$('a[href^="#"]').forEach(a => {
-  a.addEventListener("click", (e) => {
-    const id = a.getAttribute("href")?.slice(1);
-    const target = id ? document.getElementById(id) : null;
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: "smooth" });
-      history.replaceState(null, "", `#${id}`);
-    }
-  });
-});
+// ---------- Intro & HERO flow control ----------
+function atIntro() {
+  if (!intro) return false;
+  const rect = intro.getBoundingClientRect();
+  return rect.top >= -1 && rect.bottom > window.innerHeight / 2;
+}
+function atHeroTop() {
+  if (!hero) return false;
+  const top = hero.getBoundingClientRect().top;
+  return top > -2 && top < 2;
+}
+function goIntro() {
+  intro?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function goHero() {
+  hero?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+let introJumping = false;
+function jumpToHero() {
+  if (introJumping) return;
+  introJumping = true;
+  setCtrlState("arrow");
+  goHero();
+  window.setTimeout(() => { introJumping = false; }, prefersReducedMotion ? 200 : 520);
+}
 
-// ---------- Burger interactions ----------
-function goHero() { hero?.scrollIntoView({ behavior: "smooth", block: "start" }); }
-function goIntro() { intro?.scrollIntoView({ behavior: "smooth", block: "start" }); }
+const wheelOptions = { passive: false };
+window.addEventListener("wheel", (event) => {
+  if (leftIntroOnce && atHeroTop() && event.deltaY < 0) {
+    event.preventDefault();
+    return;
+  }
+  if (event.deltaY > 0 && atIntro()) {
+    event.preventDefault();
+    jumpToHero();
+  }
+}, wheelOptions);
 
-burgerFab?.addEventListener("click", () => {
-  // departure animation (lines go up with stagger + slight pull)
-  burgerFab.classList.remove("appear");
-  if (burgerFab.classList.contains("is-arrow")) {
-    goIntro();
-  } else {
-    burgerFab.classList.add("depart");
-    goHero();
-    setTimeout(() => burgerFab.classList.remove("depart"), 500);
+const pointerOptions = { passive: false };
+window.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0 || !event.isPrimary) return;
+  if (!atIntro()) return;
+  if (ctrlFab && event.target instanceof Element && ctrlFab.contains(event.target)) return;
+  event.preventDefault();
+  jumpToHero();
+}, pointerOptions);
+
+window.addEventListener("keydown", (event) => {
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  const key = event.key;
+  if (leftIntroOnce && atHeroTop() && (key === "ArrowUp" || key === "PageUp" || key === "Home")) {
+    event.preventDefault();
+    return;
+  }
+  const triggerKeys = [" ", "Spacebar", "Space", "Enter", "ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft", "PageDown"];
+  if (atIntro() && triggerKeys.includes(key)) {
+    event.preventDefault();
+    jumpToHero();
   }
 });
 
-// On intro: minimal wheel / space / PageDown jumps to HERO
-(() => {
-  if (!intro || !hero) return;
-  const onIntro = () => {
-    const rect = intro.getBoundingClientRect();
-    return rect.top >= -1 && rect.bottom > window.innerHeight/2;
-  };
-  const wheelOpts = { passive: false };
-  const keyOpts = { passive: false };
-  const pointerOpts = { passive: true };
-  let armed = false;
-
-  const leaveIntro = () => {
-    if (!armed) return;
-    disableIntroInteractions();
-    burgerFab?.classList.add("depart");
-    goHero();
-    setHeaderVisible(true);
-    setTimeout(() => burgerFab?.classList.remove("depart"), 500);
-  };
-
-  const wheelHandler = (e) => {
-    if (!armed) return;
-    if (!onIntro()) {
-      disableIntroInteractions();
-      return;
-    }
-    if (e.deltaY > 0) {
-      e.preventDefault();
-      leaveIntro();
-    }
-  };
-
-  const keyHandler = (e) => {
-    if (!armed) return;
-    if (!onIntro()) {
-      disableIntroInteractions();
-      return;
-    }
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    e.preventDefault();
-    leaveIntro();
-  };
-
-  const pointerHandler = (e) => {
-    if (!armed) return;
-    if (!onIntro()) {
-      disableIntroInteractions();
-      return;
-    }
-    if (burgerFab && e.target instanceof Element && burgerFab.contains(e.target)) {
-      return;
-    }
-    leaveIntro();
-  };
-
-  const enable = () => {
-    if (armed) return;
-    armed = true;
-    window.addEventListener("wheel", wheelHandler, wheelOpts);
-    window.addEventListener("keydown", keyHandler, keyOpts);
-    window.addEventListener("pointerdown", pointerHandler, pointerOpts);
-  };
-
-  const disable = () => {
-    if (!armed) return;
-    armed = false;
-    window.removeEventListener("wheel", wheelHandler, wheelOpts);
-    window.removeEventListener("keydown", keyHandler, keyOpts);
-    window.removeEventListener("pointerdown", pointerHandler, pointerOpts);
-  };
-
-  enableIntroInteractions = enable;
-  disableIntroInteractions = disable;
-
-  enable();
-})();
-
-// ---------- Ripple inside glyphs (track mouse position) ----------
-$$(".nav a").forEach((link) => {
-  link.addEventListener("mousemove", (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    e.currentTarget.style.setProperty("--mx", x + "%");
-    e.currentTarget.style.setProperty("--my", y + "%");
-  });
-  link.addEventListener("mouseleave", (e) => {
-    e.currentTarget.style.removeProperty("--mx");
-    e.currentTarget.style.removeProperty("--my");
-  });
+// ---------- Control FAB ----------
+ctrlFab?.addEventListener("click", (event) => {
+  event.preventDefault();
+  if (ctrlState === "burger") {
+    setCtrlState("arrow");
+    jumpToHero();
+  } else {
+    goIntro();
+    scheduleBurgerReset();
+  }
 });
 
 // ---------- Request CV (mailto) ----------
 const cvForm = $("#cvForm");
-cvForm?.addEventListener("submit", (e) => {
-  e.preventDefault();
+cvForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
   const fd = new FormData(cvForm);
   const name = String(fd.get("name") || "").trim();
   const email = String(fd.get("email") || "").trim();
@@ -272,12 +306,21 @@ cvForm?.addEventListener("submit", (e) => {
     `Email: ${email}`,
     `Powód: ${reason}`,
     `Dołączyć referencje: ${withRefs}`,
-    message ? `\\nWiadomość:\\n${message}` : ""
-  ].join("\\n");
+    message ? `\nWiadomość:\n${message}` : ""
+  ].join("\n");
 
   const mailto = `mailto:marek@grvbowski.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.location.href = mailto;
 });
 
-// Year
-$("#year").textContent = String(new Date().getFullYear());
+// ---------- Year ----------
+const yearEl = $("#year");
+if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+// ---------- Utility exposure (for debugging) ----------
+window.__grv = {
+  goIntro,
+  goHero,
+  atIntro,
+  atHeroTop
+};
