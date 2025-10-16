@@ -181,6 +181,7 @@ body[data-tone="silver"] {
 }
 .nav a.active{ opacity: 1; }
 .nav a:not(.active){ opacity: .78; }
+.nav a:focus-visible{ --lift: -1px; }
 
 /* header hidden/shown */
 .header--hidden .nav{ opacity: 0; transform: translateY(-14px); pointer-events:none }
