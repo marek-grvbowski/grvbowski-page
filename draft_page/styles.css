@@ -12,6 +12,8 @@
   --sweep: 0deg;
   --sx: 40%;
   --sy: 40%;
+  --spotlight-strength: .58;
+  --spotlight-softness: 72%;
 }
 
 * { box-sizing: border-box }
@@ -20,10 +22,118 @@ body {
   margin: 0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
   color: var(--text);
-  background: var(--bg);
+  background-color: var(--bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  isolation: isolate;
+  transition: background-color 1.2s cubic-bezier(.33,.02,.12,1), color 1s ease, filter 1.2s ease;
+}
+
+body[data-tone="deep"] {
+  --bg: hsl(225 15% 7%);
+  --bg-2: hsl(225 14% 9%);
+  --card: hsl(225 14% 10%);
+  --border: hsl(0 0% 100% / .06);
+  --text: hsl(0 0% 96%);
+  --muted: hsl(220 8% 68%);
+  --spotlight-strength: .6;
+  --spotlight-softness: 72%;
+}
+
+body[data-tone="charcoal"] {
+  --bg: hsl(222 16% 9%);
+  --bg-2: hsl(222 14% 12%);
+  --card: hsl(222 14% 15%);
+  --border: hsl(0 0% 100% / .075);
+  --text: hsl(0 0% 96%);
+  --muted: hsl(220 10% 70%);
+  --spotlight-strength: .58;
+}
+
+body[data-tone="slate"] {
+  --bg: hsl(215 22% 14%);
+  --bg-2: hsl(215 20% 17%);
+  --card: hsl(215 22% 21%);
+  --border: hsl(0 0% 100% / .085);
+  --text: hsl(0 0% 97%);
+  --muted: hsl(215 16% 78%);
+  --spotlight-strength: .55;
+  --spotlight-softness: 74%;
+}
+
+body[data-tone="graphite"] {
+  --bg: hsl(220 18% 8%);
+  --bg-2: hsl(220 16% 10%);
+  --card: hsl(220 18% 13%);
+  --border: hsl(0 0% 100% / .07);
+  --text: hsl(0 0% 96%);
+  --muted: hsl(220 10% 68%);
+  --spotlight-strength: .62;
+}
+
+body[data-tone="silver"] {
+  --bg: hsl(214 24% 26%);
+  --bg-2: hsl(214 22% 30%);
+  --card: hsl(214 26% 34%);
+  --border: hsl(0 0% 100% / .12);
+  --text: hsl(0 0% 98%);
+  --muted: hsl(214 18% 82%);
+  --spotlight-strength: .5;
+  --spotlight-softness: 76%;
+}
+
+body[data-effect="invert"] {
+  --spotlight-strength: .88;
+  --spotlight-softness: 80%;
+}
+
+body.tone-flip {
+  filter: invert(1) hue-rotate(180deg);
+  transition-timing-function: cubic-bezier(.16,.84,.44,1);
+  transition-duration: .9s;
+}
+
+body.tone-return {
+  animation: toneReturn 1600ms cubic-bezier(.22,.61,.23,1) both;
+}
+
+@keyframes toneReturn {
+  0% { filter: invert(1) hue-rotate(180deg); background-color: color-mix(in oklab, var(--bg), white 55%); }
+  55% { filter: saturate(1.35) brightness(1.18) hue-rotate(320deg); }
+  100% { filter: none; }
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: -32vh -18vw;
+  pointer-events: none;
+  z-index: 2000;
+  background:
+    radial-gradient(ellipse at var(--sx) var(--sy),
+      hsl(0 0% 100% / var(--spotlight-strength)),
+      transparent var(--spotlight-softness));
+  mix-blend-mode: difference;
+  opacity: .62;
+  transition: opacity 1.4s ease, filter 1.4s ease, transform 1.4s ease;
+}
+
+body[data-effect="invert"]::after {
+  opacity: .9;
+  transform: scale(1.05);
+  filter: saturate(125%) contrast(110%);
+}
+
+body.tone-return::after {
+  animation: toneReturnSpot 1600ms cubic-bezier(.22,.61,.23,1) both;
+}
+
+@keyframes toneReturnSpot {
+  0% { opacity: .9; filter: saturate(135%) brightness(1.1); }
+  55% { opacity: .32; filter: hue-rotate(-18deg) saturate(120%); }
+  100% { opacity: .6; filter: none; }
 }
 
 /* ---------- Progress line ---------- */
@@ -78,23 +188,35 @@ body {
   padding:.25rem .1rem;
   color: var(--text);
   text-decoration: none;
-  /* dynamic translation controlled via CSS vars */
-  --tx: 0px;
-  --ty: 0px;
-  --lift: 0px;
-  transform: translate3d(var(--tx), calc(var(--ty) + var(--lift)), 0);
-  transition: transform .52s cubic-bezier(.2, 1.1, .32, 1), font-weight .2s ease, opacity .2s ease;
-  will-change: transform;
+  overflow: hidden;
+  isolation: isolate;
+  z-index: 0;
+  /* subtle ripple hover accent */
+  transition: font-weight .2s ease, transform .2s ease, opacity .2s ease;
 }
-/* Ripple effect (confined to glyphs) */
-.nav a:hover{
+/* Ripple effect (confined near glyphs) */
+.nav a::after{
+  content: "";
+  position: absolute;
+  inset: -45%;
+  background:
+    radial-gradient(120px 120px at var(--mx,50%) var(--my,50%), hsl(225 42% 20% / .65), transparent 70%);
+  opacity: 0;
+  transform: scale(.4);
+  transform-origin: var(--mx,50%) var(--my,50%);
+  transition: transform .5s cubic-bezier(.33,1,.68,1), opacity .5s cubic-bezier(.33,1,.68,1);
+  pointer-events: none;
+  z-index: -1;
+}
+.nav a:hover,
+.nav a:focus-visible{
   font-weight: 600;
-  --lift: -1px;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
-  background-image:
-    radial-gradient(120px 120px at var(--mx,50%) var(--my,50%), hsl(0 0% 100% / .85), transparent 60%);
+  transform: translateY(-1px);
+}
+.nav a:hover::after,
+.nav a:focus-visible::after{
+  opacity: 1;
+  transform: scale(1);
 }
 .nav a:focus-visible{ --lift: -1px; }
 
@@ -106,10 +228,10 @@ body {
 .bg{
   position: fixed; inset: -20vh -10vw 0 -10vw; z-index: -2; pointer-events: none;
   background:
-    radial-gradient(1200px 800px at 20% 10%, hsl(0 0% 100% / .055), transparent 60%),
-    radial-gradient(1200px 900px at 80% -10%, hsl(0 0% 100% / .035), transparent 60%),
-    radial-gradient(900px 700px at 50% 120%, hsl(0 0% 0% / .22), transparent 60%),
-    conic-gradient(from var(--sweep) at var(--sx) var(--sy), hsl(0 0% 100% / .06), transparent 35% 70%, hsl(0 0% 100% / .06) 100%);
+    radial-gradient(2200px 1200px at 15% 8%, hsl(0 0% 100% / .065), transparent 82%),
+    radial-gradient(2200px 1300px at 85% -12%, hsl(0 0% 100% / .05), transparent 82%),
+    radial-gradient(1500px 1100px at 48% 128%, hsl(220 65% 6% / .32), transparent 74%),
+    conic-gradient(from var(--sweep) at var(--sx) var(--sy), hsl(0 0% 100% / .08), transparent 40% 72%, hsl(0 0% 100% / .08) 100%);
   transition: opacity 1.0s ease, transform 0.6s ease, filter 1.0s ease;
 }
 .grain{position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.07;
