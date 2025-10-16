@@ -43,6 +43,45 @@ function setHeaderVisible(visible) {
 }
 
 const bodyEl = document.body;
+let currentTone = bodyEl.dataset.tone || "deep";
+let currentEffect = bodyEl.dataset.effect || "none";
+let toneReturnTimer;
+
+function applyTone(tone) {
+  if (!tone || tone === currentTone) return;
+  currentTone = tone;
+  bodyEl.setAttribute("data-tone", tone);
+}
+
+function applyEffect(effect) {
+  const desired = effect || "none";
+  if (desired === currentEffect) return;
+  const previous = currentEffect;
+  currentEffect = desired;
+  bodyEl.setAttribute("data-effect", desired);
+
+  if (desired === "invert") {
+    bodyEl.classList.add("tone-flip");
+    bodyEl.classList.remove("tone-return");
+    if (toneReturnTimer) {
+      clearTimeout(toneReturnTimer);
+      toneReturnTimer = undefined;
+    }
+  } else {
+    if (previous === "invert") {
+      bodyEl.classList.remove("tone-flip");
+      bodyEl.classList.add("tone-return");
+      if (toneReturnTimer) clearTimeout(toneReturnTimer);
+      toneReturnTimer = window.setTimeout(() => {
+        bodyEl.classList.remove("tone-return");
+        toneReturnTimer = undefined;
+      }, 1650);
+    } else {
+      bodyEl.classList.remove("tone-flip");
+      bodyEl.classList.remove("tone-return");
+    }
+  }
+}
 const obs = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (!entry.isIntersecting) return;
@@ -53,7 +92,9 @@ const obs = new IntersectionObserver((entries) => {
     nav?.classList.add("active");
     // tone
     const tone = entry.target.dataset.tone;
-    if (tone) bodyEl.setAttribute("data-tone", tone);
+    const effect = entry.target.dataset.effect || "none";
+    applyTone(tone);
+    applyEffect(effect);
     // header only on HERO
     setHeaderVisible(id === "hero");
   });
