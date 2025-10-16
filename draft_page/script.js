@@ -26,6 +26,10 @@ const sections = $$("main > section");
 const navLinks = $$("nav a[data-nav]");
 const header = $("#siteHeader");
 const burgerFab = $("#burgerFab");
+const intro = $("#intro");
+const hero = $("#hero");
+let enableIntroInteractions = () => {};
+let disableIntroInteractions = () => {};
 
 function setHeaderVisible(visible) {
   if (!header) return;
@@ -55,7 +59,24 @@ const obs = new IntersectionObserver((entries) => {
     const tone = entry.target.dataset.tone;
     if (tone) bodyEl.setAttribute("data-tone", tone);
     // header only on HERO
-    setHeaderVisible(id === "hero");
+    const onHero = id === "hero";
+    setHeaderVisible(onHero);
+
+    const onIntroSection = id === "intro";
+    if (burgerFab) {
+      burgerFab.classList.toggle("is-arrow", !onIntroSection);
+      burgerFab.setAttribute(
+        "aria-label",
+        onIntroSection ? "Menu / przejdź do sekcji startowej" : "Wróć do sekcji intro"
+      );
+      burgerFab.setAttribute("aria-expanded", String(!onIntroSection));
+    }
+
+    if (onIntroSection) {
+      enableIntroInteractions();
+    } else {
+      disableIntroInteractions();
+    }
   });
 }, { rootMargin: "-55% 0% -35% 0%" });
 sections.forEach(s => obs.observe(s));
@@ -85,44 +106,97 @@ $$('a[href^="#"]').forEach(a => {
 });
 
 // ---------- Burger interactions ----------
-const hero = $("#hero");
 function goHero() { hero?.scrollIntoView({ behavior: "smooth", block: "start" }); }
+function goIntro() { intro?.scrollIntoView({ behavior: "smooth", block: "start" }); }
 
 burgerFab?.addEventListener("click", () => {
   // departure animation (lines go up with stagger + slight pull)
   burgerFab.classList.remove("appear");
-  burgerFab.classList.add("depart");
-  goHero();
-  setTimeout(() => burgerFab.classList.remove("depart"), 500);
+  if (burgerFab.classList.contains("is-arrow")) {
+    goIntro();
+  } else {
+    burgerFab.classList.add("depart");
+    goHero();
+    setTimeout(() => burgerFab.classList.remove("depart"), 500);
+  }
 });
 
 // On intro: minimal wheel / space / PageDown jumps to HERO
 (() => {
-  const intro = $("#intro");
-  if (!intro) return;
+  if (!intro || !hero) return;
   const onIntro = () => {
     const rect = intro.getBoundingClientRect();
     return rect.top >= -1 && rect.bottom > window.innerHeight/2;
   };
+  const wheelOpts = { passive: false };
+  const keyOpts = { passive: false };
+  const pointerOpts = { passive: true };
+  let armed = false;
+
+  const leaveIntro = () => {
+    if (!armed) return;
+    disableIntroInteractions();
+    burgerFab?.classList.add("depart");
+    goHero();
+    setHeaderVisible(true);
+    setTimeout(() => burgerFab?.classList.remove("depart"), 500);
+  };
+
   const wheelHandler = (e) => {
-    if (onIntro() && e.deltaY > 0) {
+    if (!armed) return;
+    if (!onIntro()) {
+      disableIntroInteractions();
+      return;
+    }
+    if (e.deltaY > 0) {
       e.preventDefault();
-      burgerFab?.classList.add("depart");
-      goHero();
-      setTimeout(() => burgerFab?.classList.remove("depart"), 500);
+      leaveIntro();
     }
   };
+
   const keyHandler = (e) => {
-    const keys = [" ", "Spacebar", "ArrowDown", "PageDown"];
-    if (keys.includes(e.key) && onIntro()) {
-      e.preventDefault();
-      burgerFab?.classList.add("depart");
-      goHero();
-      setTimeout(() => burgerFab?.classList.remove("depart"), 500);
+    if (!armed) return;
+    if (!onIntro()) {
+      disableIntroInteractions();
+      return;
     }
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    e.preventDefault();
+    leaveIntro();
   };
-  window.addEventListener("wheel", wheelHandler, { passive: false });
-  window.addEventListener("keydown", keyHandler, { passive: false });
+
+  const pointerHandler = (e) => {
+    if (!armed) return;
+    if (!onIntro()) {
+      disableIntroInteractions();
+      return;
+    }
+    if (burgerFab && e.target instanceof Element && burgerFab.contains(e.target)) {
+      return;
+    }
+    leaveIntro();
+  };
+
+  const enable = () => {
+    if (armed) return;
+    armed = true;
+    window.addEventListener("wheel", wheelHandler, wheelOpts);
+    window.addEventListener("keydown", keyHandler, keyOpts);
+    window.addEventListener("pointerdown", pointerHandler, pointerOpts);
+  };
+
+  const disable = () => {
+    if (!armed) return;
+    armed = false;
+    window.removeEventListener("wheel", wheelHandler, wheelOpts);
+    window.removeEventListener("keydown", keyHandler, keyOpts);
+    window.removeEventListener("pointerdown", pointerHandler, pointerOpts);
+  };
+
+  enableIntroInteractions = enable;
+  disableIntroInteractions = disable;
+
+  enable();
 })();
 
 // ---------- Ripple inside glyphs (track mouse position) ----------
