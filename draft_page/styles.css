@@ -78,19 +78,25 @@ body {
   padding:.25rem .1rem;
   color: var(--text);
   text-decoration: none;
-  /* ripple clip to glyphs on hover using background-clip:text  */
-  transition: font-weight .2s ease, transform .2s ease, opacity .2s ease;
+  /* dynamic translation controlled via CSS vars */
+  --tx: 0px;
+  --ty: 0px;
+  --lift: 0px;
+  transform: translate3d(var(--tx), calc(var(--ty) + var(--lift)), 0);
+  transition: transform .52s cubic-bezier(.2, 1.1, .32, 1), font-weight .2s ease, opacity .2s ease;
+  will-change: transform;
 }
 /* Ripple effect (confined to glyphs) */
 .nav a:hover{
   font-weight: 600;
-  transform: translateY(-1px);
+  --lift: -1px;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   -webkit-background-clip: text;
   background-image:
     radial-gradient(120px 120px at var(--mx,50%) var(--my,50%), hsl(0 0% 100% / .85), transparent 60%);
 }
+.nav a:focus-visible{ --lift: -1px; }
 
 /* header hidden/shown */
 .header--hidden .nav{ opacity: 0; transform: translateY(-14px); pointer-events:none }
