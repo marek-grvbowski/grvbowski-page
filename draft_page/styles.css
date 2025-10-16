@@ -35,10 +35,13 @@ body {
   position: fixed; top: 14px; left: 16px; z-index: 1100;
   width: 44px; height: 44px; display:grid; place-items:center; cursor:pointer;
   border: none; background: transparent;
+  transition: transform .45s cubic-bezier(.22,1,.36,1);
 }
 .burger-fab span{
   display:block; height:2px; width:22px; background: var(--text); border-radius:2px;
   transform-origin: left center;
+  margin: 4px 0;
+  transition: transform .45s cubic-bezier(.22,1,.36,1), width .45s cubic-bezier(.22,1,.36,1), opacity .32s ease;
 }
 /* Staggered bounce IN (appearing) */
 @keyframes lineIn { 0%{ transform: translateY(-16px) } 60%{ transform: translateY(3px) } 100%{ transform:none } }
@@ -50,6 +53,10 @@ body {
 .burger-fab.depart span:nth-child(1){ animation: lineOut 420ms cubic-bezier(.22,1,.36,1) 0ms both }
 .burger-fab.depart span:nth-child(2){ animation: lineOut 420ms cubic-bezier(.22,1,.36,1) 60ms both }
 .burger-fab.depart span:nth-child(3){ animation: lineOut 420ms cubic-bezier(.22,1,.36,1) 120ms both }
+.burger-fab.is-arrow{ transform: rotate(-90deg); }
+.burger-fab.is-arrow span:nth-child(1){ transform: translate(6px, -6px) rotate(45deg); width: 18px; }
+.burger-fab.is-arrow span:nth-child(2){ transform: translateX(0); width: 18px; }
+.burger-fab.is-arrow span:nth-child(3){ transform: translate(6px, 6px) rotate(-45deg); width: 18px; }
 
 /* ---------- Header (nav only, right-aligned) ---------- */
 .site-header{
@@ -117,16 +124,18 @@ main{ scroll-snap-type: y proximity; }
 /* ---------- Intro ---------- */
 .intro .intro-inner{ text-align:center }
 .intro-logo{
-  font-family: "Playfair Display", serif;
-  font-weight: 700;
-  letter-spacing: .4px;
-  font-size: clamp(2.4rem, 8vw, 6rem);
-  color: #fff;
-  text-shadow: 0 8px 32px rgba(0,0,0,.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   animation: logoFloat 6s ease-in-out infinite;
 }
+.intro-logo img{
+  display: block;
+  width: clamp(200px, 32vw, 420px);
+  height: auto;
+  filter: drop-shadow(0 12px 36px rgba(0,0,0,.45));
+}
 @keyframes logoFloat { 50% { transform: translateY(-6px) } }
-.intro-logo .dot{ color: #9d9d9d }
 .intro-hint{ margin-top: 1rem; color: #9a9a9a; letter-spacing: .14em; text-transform: uppercase; opacity: .7 }
 
 /* ---------- Type ---------- */
