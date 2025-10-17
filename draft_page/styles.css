@@ -259,9 +259,24 @@ h3{font-size: clamp(1.2rem, 2.6vw, 1.4rem); font-weight:600;}
   position: relative;
   color: var(--text);
   background-image: radial-gradient(1600px 1000px at var(--sx) var(--sy), rgba(0,0,0,.35), transparent 78%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: currentColor;
+}
+
+@supports (background-clip: text) {
+  .ink{
+    background-color: var(--text);
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@supports (-webkit-background-clip: text) {
+  .ink{
+    background-color: var(--text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 ul.tick{padding-left: 1.1em; margin: .8rem 0 0}
