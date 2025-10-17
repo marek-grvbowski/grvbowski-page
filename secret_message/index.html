@@ -33,6 +33,7 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
       animation: pop 400ms ease-out both;
       width: min(420px, 90%);
+      position: relative;
     }
     h1 {
       margin: 0 0 16px;
@@ -83,9 +84,9 @@
       border-radius: 12px;
       font-weight: 600;
       overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: all 0.25s ease;
     }
-    a.btn:hover {
+    a.btn:hover:not(.disabled) {
       transform: translateY(-2px);
       box-shadow: 0 0 16px rgba(124,255,192,0.3);
     }
@@ -103,8 +104,44 @@
     a.btn:hover::before {
       left: 125%;
     }
-    a.btn:active {
+    a.btn:active:not(.disabled) {
       animation: heartPulse 1s ease;
+    }
+
+    /* Disabled state */
+    a.btn.disabled {
+      pointer-events: all; /* allow click for warning */
+      opacity: 0.4;
+      filter: blur(0.5px);
+      transform: scale(0.97);
+      cursor: not-allowed;
+    }
+
+    /* Komunikat */
+    .warning {
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff3b3b;
+      color: white;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      animation: shake 0.4s ease;
+    }
+    .warning.show {
+      opacity: 1;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      25% { transform: translateX(-52%) translateY(-1px); }
+      50% { transform: translateX(-48%) translateY(1px); }
+      75% { transform: translateX(-52%) translateY(0); }
     }
 
     @keyframes heartPulse {
@@ -130,16 +167,45 @@
     <h1>Pójdziesz ze mną do kina? <span class="emojis">🫶🫶</span></h1>
 
     <div class="options">
-      <label><input type="checkbox"> tak</label>
-      <label><input type="checkbox"> oczywiście</label>
-      <label><input type="checkbox"> jak najbardziej</label>
+      <label><input type="checkbox" class="chk"> tak</label>
+      <label><input type="checkbox" class="chk"> oczywiście</label>
+      <label><input type="checkbox" class="chk"> jak najbardziej</label>
     </div>
 
     <p class="note">* jak już zaznaczysz — wyślij mi screena, bo nie miałem czasu napisać logiki, która by mi to przekazała 😅</p>
 
-    <a class="btn" href="https://www.multikino.pl/repertuar/krakow/filmy/jedna-bitwa-po-drugiej" target="_blank" rel="noopener noreferrer">
+    <a id="goBtn" class="btn disabled" href="https://www.multikino.pl/repertuar/krakow/filmy/jedna-bitwa-po-drugiej" target="_blank" rel="noopener noreferrer">
       moja propozycja 🎬
     </a>
+    <div id="warning" class="warning">wszystkie odpowiedzi są wymagane</div>
   </main>
+
+  <script>
+    const checkboxes = document.querySelectorAll('.chk');
+    const goBtn = document.getElementById('goBtn');
+    const warning = document.getElementById('warning');
+
+    function checkAllSelected() {
+      const allChecked = Array.from(checkboxes).every(c => c.checked);
+      if (allChecked) {
+        goBtn.classList.remove('disabled');
+        warning.classList.remove('show');
+        goBtn.style.animation = 'pop 0.4s ease';
+      } else {
+        goBtn.classList.add('disabled');
+        goBtn.style.animation = 'none';
+      }
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', checkAllSelected));
+
+    goBtn.addEventListener('click', (e) => {
+      if (goBtn.classList.contains('disabled')) {
+        e.preventDefault();
+        warning.classList.add('show');
+        setTimeout(() => warning.classList.remove('show'), 1600);
+      }
+    });
+  </script>
 </body>
 </html>
