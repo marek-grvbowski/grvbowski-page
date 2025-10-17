@@ -99,13 +99,17 @@ body[data-tone="silver"] {
   background: var(--text);
   border-radius: 999px;
   transform: translateX(-50%);
-  transition: transform .36s cubic-bezier(.33,1,.68,1), width .36s cubic-bezier(.33,1,.68,1), opacity .24s ease;
-  will-change: transform, width, opacity;
+  transform-origin: 50% 50%;
+  transition: transform .36s cubic-bezier(.33,1,.68,1), width .36s cubic-bezier(.33,1,.68,1), opacity .24s ease, top .36s cubic-bezier(.33,1,.68,1);
+  will-change: transform, width, opacity, top;
 }
 .ctrl-fab .l1{ top: 18px; }
 .ctrl-fab .l2{ top: 24px; }
 .ctrl-fab .l3{ top: 30px; }
 .ctrl-fab.is-burger .line{ opacity: 1; }
+.ctrl-fab.is-arrow .line{
+  transform-origin: 50% 0%;
+}
 .ctrl-fab.is-arrow .l1{
   top: 22px;
   transform: translateX(-50%) rotate(-40deg);

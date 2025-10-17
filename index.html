@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>grvbowski.</title>
+<meta name="color-scheme" content="dark" />
+<style>
+/* --- RESET & BASE --- */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+margin: 0; background: #000; color: #fff; overflow: hidden;
+font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+}
+
+/* --- STAGE --- */
+.stage {
+position: fixed; inset: 0;
+display: grid; place-items: center;
+isolation: isolate;
+}
+
+/* --- GRAINY BACKGROUND --- */
+.grain {
+position: absolute; inset: -10%;
+pointer-events: none;
+mix-blend-mode: soft-light;
+    opacity: .15;
+filter: contrast(140%) brightness(110%);
+animation: drift 12s linear infinite;
+background:
+      radial-gradient(1000px 1000px at 50% 50%, rgba(255,255,255,.04), transparent 50%) center/cover no-repeat;
+z-index: 0;
+}
+@keyframes drift {
+0%   { transform: translate3d(0,0,0) scale(1); }
+50%  { transform: translate3d(-2%, -1.5%, 0) scale(1.03); }
+100% { transform: translate3d(0,0,0) scale(1); }
+}
+
+/* --- LOGO LAYERS ---
+    .logo-shell   -> tylko parallax (JS zmienia transform)
+    .logo-anim    -> „oddychanie” (CSS animation)
+    .logo         -> fade-in + scale-in (CSS animation)
+ ------------------------------------------------------ */
+.logo-shell {
+position: relative;
+z-index: 2;
+will-change: transform;
+transition: transform .12s ease-out;
+}
+.logo-anim {
+animation: float 8s ease-in-out infinite;
+will-change: transform;
+}
+@keyframes float {
+0%, 100% { transform: translateY(0) scale(1); }
+50%      { transform: translateY(-0.6vh) scale(1.015); }
+}
+
+/* Jeżeli użyjesz <img> z plikiem grvbowski.svg */
+.logo {
+display: block;
+width: min(78vw, 720px);
+height: auto;
+opacity: 0;
+transform: translateY(8px) scale(.985);
+animation: logoIn .9s cubic-bezier(.2,.8,.2,1) .2s forwards;
+image-rendering: -webkit-optimize-contrast;
+}
+@keyframes logoIn {
+to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Gdy wkleisz SVG inline, te reguły zapewnią odpowiednie skalowanie */
+.logo-inline svg {
+display: block;
+width: min(78vw, 720px);
+height: auto;
+}
+
+/* Subtelny glow na hover (desktop) */
+@media (hover:hover) {
+.logo-shell:hover {
+filter: drop-shadow(0 0 16px rgba(255,255,255,.08))
+drop-shadow(0 0 48px rgba(255,255,255,.04));
+}
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+.grain, .logo-anim { animation: none; }
+.logo { animation: none; opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="stage">
+<div class="grain" aria-hidden="true"></div>
+
+<!-- Parallax shell -->
+<div class="logo-shell">
+<!-- Breathing / float animation -->
+<div class="logo-anim logo-inline">
+<!-- OPCJA A: obraz jako plik -->
+<img class="logo" src="grvbowski.svg" alt="grvbowski." />
+
+<!-- OPCJA B (zamiast <img>): wklej inline swoje <svg ...>...</svg>
+       <svg class="force-white" viewBox="0 0 1100 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+         ...tutaj Twoje ścieżki...
+       </svg>
+       -->
+</div>
+</div>
+</div>
+
+<script>
+// Parallax: działa na .logo-shell, nie psuje animacji CSS wewnątrz
+(function () {
+const shell = document.querySelector('.logo-shell');
+if (!shell) return;
+const strength = 8; // px
+let raf = null;
+window.addEventListener('mousemove', (e) => {
+if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+const x = (e.clientX / window.innerWidth - .5) * 2;
+const y = (e.clientY / window.innerHeight - .5) * 2;
+cancelAnimationFrame(raf);
+raf = requestAnimationFrame(() => {
+shell.style.transform = `translate3d(${(x*strength).toFixed(2)}px, ${(y*strength).toFixed(2)}px, 0)`;
+});
+}, { passive: true });
+})();
+</script>
+</body>
+</html>
