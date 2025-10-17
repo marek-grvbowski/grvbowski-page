@@ -8,7 +8,6 @@ const carouselWrapper = document.getElementById('carouselWrapper');
 const nextButton = document.getElementById('nextButton');
 let currentIndex = 0;
 
-// Zamknij wszystkie sekcje
 function closeAllContainers() {
     [carouselContainer, calendarContainer, contactContainer].forEach(container => {
         if (!container) {
@@ -21,7 +20,6 @@ function closeAllContainers() {
     });
 }
 
-// Funkcja do przełączania sekcji
 function toggleContainer(container) {
     if (!container) {
         return;
@@ -71,12 +69,10 @@ function registerToggleControl(control, container) {
     control.addEventListener('keydown', event => handleToggleEvent(event, container));
 }
 
-// Eventy do przycisków sekcji
 registerToggleControl(referencesButton, carouselContainer);
 registerToggleControl(calendarButton, calendarContainer);
 registerToggleControl(contactButton, contactContainer);
 
-// Przewijanie karuzeli z referencjami
 function updateCarousel() {
     if (!carouselWrapper) {
         return;
