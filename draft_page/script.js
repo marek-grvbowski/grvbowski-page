@@ -123,11 +123,17 @@ let revertTimer;
 const supportsScrollEnd = "onscrollend" in window;
 let leftIntroOnce = false;
 
+function isFromCtrlFab(target) {
+  if (!ctrlFab || !(target instanceof Element)) return false;
+  return ctrlFab.contains(target);
+}
+
 function setHeaderVisible(visible) {
   if (!header) return;
   header.classList.toggle("header--visible", visible);
   header.classList.toggle("header--hidden", !visible);
   header.setAttribute("aria-hidden", String(!visible));
+  header.toggleAttribute("inert", !visible);
 }
 function setTone(tone) {
   if (!tone || tone === currentTone) return;
@@ -225,7 +231,7 @@ function atIntro() {
 function atHeroTop() {
   if (!hero) return false;
   const top = hero.getBoundingClientRect().top;
-  return top > -2 && top < 2;
+  return Math.abs(top) <= 4;
 }
 function goIntro() {
   intro?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -239,6 +245,7 @@ function jumpToHero() {
   introJumping = true;
   setCtrlState("arrow");
   goHero();
+  leftIntroOnce = true;
   window.setTimeout(() => { introJumping = false; }, prefersReducedMotion ? 200 : 520);
 }
 
@@ -254,14 +261,12 @@ window.addEventListener("wheel", (event) => {
   }
 }, wheelOptions);
 
-const pointerOptions = { passive: false };
-window.addEventListener("pointerdown", (event) => {
-  if (event.button !== 0 || !event.isPrimary) return;
+window.addEventListener("click", (event) => {
   if (!atIntro()) return;
-  if (ctrlFab && event.target instanceof Element && ctrlFab.contains(event.target)) return;
+  if (isFromCtrlFab(event.target)) return;
   event.preventDefault();
   jumpToHero();
-}, pointerOptions);
+}, { passive: false });
 
 window.addEventListener("keydown", (event) => {
   if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -295,7 +300,7 @@ const navHoverLinks = $$(".nav a");
 const NAV_INFLUENCE_EXTRA = 70;
 const NAV_MAX_SHIFT = 9; // px, translation cap to avoid layout jumps
 
-const navStates = new Map();
+const navGlyphStates = new Map();
 let navPointerX = null;
 let navPointerY = null;
 let navRaf = 0;
@@ -366,7 +371,7 @@ function updateNavTranslations() {
   const shiftLimit = window.innerWidth <= 600 ? NAV_MAX_SHIFT * 0.75 : NAV_MAX_SHIFT;
 
   navHoverLinks.forEach((link) => {
-    const state = navStates.get(link);
+    const state = navGlyphStates.get(link);
     if (!state) return;
 
     const rect = link.getBoundingClientRect();
@@ -412,7 +417,7 @@ navHoverLinks.forEach((link) => {
     stickyRunning: false,
     cooldownUntil: 0
   };
-  navStates.set(link, state);
+  navGlyphStates.set(link, state);
 
   link.addEventListener("pointerenter", (e) => {
     navPointerX = e.clientX;
@@ -466,7 +471,7 @@ addEventListener("pointerout", (e) => {
   if (e.relatedTarget) return;
   navPointerX = null;
   navPointerY = null;
-  navStates.forEach((state) => {
+  navGlyphStates.forEach((state) => {
     if (state.active) {
       state.active = false;
       startNavStickiness(state, { force: true });
