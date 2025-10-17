@@ -293,6 +293,7 @@ ctrlFab?.addEventListener("click", (event) => {
     scheduleBurgerReset();
   }
 });
+
 // ---------- Ripple inside glyphs (track mouse position) ----------
 const navHoverLinks = $$(".nav a");
 
