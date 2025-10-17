@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pójdziesz ze mną do kina? 🫶🫶</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #0b0b0b;
+      --fg: #f2f2f2;
+      --muted: #9a9a9a;
+      --accent: #7cffc0;
+    }
+    body {
+      background: radial-gradient(circle at 30% 20%, #111 0%, #0b0b0b 60%),
+                  radial-gradient(circle at 80% 80%, #141414 0%, #0b0b0b 55%);
+      color: var(--fg);
+      font-family: "Inter", system-ui, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card {
+      text-align: center;
+      padding: clamp(24px, 3vw, 40px);
+      border: 1px solid #1f1f1f;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      backdrop-filter: blur(2px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+      animation: pop 400ms ease-out both;
+      width: min(400px, 90%);
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 6vw, 48px);
+      line-height: 1.08;
+    }
+    .emojis {
+      display: inline-block;
+      animation: pulse 1.8s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .options {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 20px 0 30px;
+      padding-left: 10px;
+    }
+    label {
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+      transform: scale(1.2);
+    }
+    label:hover {
+      color: var(--accent);
+    }
+    p.note {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      40% { transform: scale(1.06); opacity: 0.96; }
+      60% { transform: scale(0.995); opacity: 0.98; }
+    }
+    @keyframes pop {
+      from { transform: translateY(6px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Pójdziesz ze mną do kina? <span class="emojis">🫶🫶</span></h1>
+    <div class="options">
+      <label><input type="checkbox"> tak</label>
+      <label><input type="checkbox"> oczywiście</label>
+      <label><input type="checkbox"> jak najbardziej</label>
+    </div>
+    <p class="note">* jak już zaznaczysz odpowiedź, wyślij mi proszę screena, bo nie miałem czasu napisać logiki, która by mi to przekazała ze strony 🤓</p>
+  </main>
+</body>
+</html>
