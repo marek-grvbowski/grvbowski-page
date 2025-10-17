@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SVG Glitch – intro + wyraźne halo (pomarańcz), rośnie nad glifem</title>
+<style>
+  :root{
+    /* Intro (po wejściu) */
+    --intro-ms: 1400;
+    --intro-intensity: 4.2px;
+    --intro-steps: 9;
+    --intro-clip: 0.75;
+
+    /* Halo po hoverze */
+    --halo-size-small: 26vmin;   /* średnica poza glifem */
+    --halo-size-large: 42vmin;   /* średnica nad „białym” logo (przybliżenie: nad <img>) */
+    --halo-bright: 1.0;          /* jasność (0..1) */
+    --halo-spark: 1.25;          /* krótkie podbicie na wejściu */
+    --halo-fade-ms: 120;         /* fade in/out */
+
+    /* Ogólne */
+    --bg: #0b0b0e;
+    --w: 720px;
+    --padding-top: 10vh;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body{
+    margin:0; background:var(--bg);
+    min-height:100svh; display:flex; align-items:flex-start; justify-content:center;
+    padding-top:var(--padding-top);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    overflow: hidden;
+  }
+
+  .glitch{ position:relative; display:inline-block; line-height:0; isolation:isolate; }
+  .wrap{ position:relative; width:var(--w); height:auto; cursor:crosshair; }
+
+  .layer{ position:absolute; inset:0; display:block; will-change:transform,opacity,filter; }
+  .layer > img{ display:block; width:100%; height:auto; }
+
+  /* Kolejność warstw: podczas intro glitch nad bazą; później pod bazą */
+  .base{ z-index:5; }
+  .g{    z-index:2; opacity:0.22; mix-blend-mode:screen; }
+
+  .intro .g{ z-index:7; opacity:0.98; }
+  .intro .base{ z-index:6; }
+
+  /* Kolory (działają na <img>) */
+  .g.r > img{ filter: invert(19%) sepia(97%) saturate(6350%) hue-rotate(356deg) brightness(105%) contrast(118%); } /* czerwony */
+  .g.b > img{ filter: invert(84%) sepia(16%) saturate(4772%) hue-rotate(161deg) brightness(96%) contrast(91%); }  /* niebieski */
+  .g.p > img{ filter: invert(37%) sepia(93%) saturate(5321%) hue-rotate(292deg) brightness(95%) contrast(101%); } /* fiolet */
+
+  .g.r{ transform: translate( 0.2px, -0.2px); }
+  .g.b{ transform: translate(-0.2px,  0.2px); }
+  .g.p{ transform: translate( 0.16px, 0.14px); }
+
+  /* HALO – warstwa na wierzchu, dynamiczna pozycja/rozmiar, zawsze renderowana */
+  .halo{
+    position:absolute; inset:0; pointer-events:none; z-index:10; opacity:0;
+    transition: opacity var(--halo-fade-ms) ease;
+    background: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layer, .layer * { animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="glitch intro" id="glitch"
+     data-src="/Users/marekgrabowski/Desktop/untitled%20folder/logo-tight.svg">
+  <div class="wrap" id="wrap">
+    <div class="layer base" id="base"><img alt=""></div>
+
+    <div class="layer g r"><img alt=""></div>
+    <div class="layer g b"><img alt=""></div>
+    <div class="layer g p"><img alt=""></div>
+
+    <div class="halo" id="halo"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const root = document.documentElement;
+
+  const glitch = $("#glitch");
+  const wrap   = $("#wrap");
+  const base   = $("#base img");
+  const gImgs  = $$(".g img", glitch);
+  const halo   = $("#halo");
+  const src = glitch.getAttribute("data-src");
+  if (!src) return;
+
+  // Ustaw źródło dla wszystkich warstw
+  base.src = src; gImgs.forEach(i => i.src = src);
+
+  // Helpers
+  const rand = (min,max) => Math.random() * (max - min) + min;
+  const choice = arr => arr[Math.floor(Math.random()*arr.length)];
+
+  // Jednopoligonowe „cięcia”
+  const clipFns = [
+    () => { const y = rand(-5, 90), h = rand(6, 26);
+            return `polygon(0% ${y}%, 100% ${y}%, 100% ${y+h}%, 0% ${y+h}%)`; }, // poziom
+    () => { const x = rand(-5, 90), w = rand(6, 24);
+            return `polygon(${x}% 0%, ${x+w}% 0%, ${x+w}% 100%, ${x}% 100%)`; }, // pion
+    () => { const x = rand(-5, 90), y = rand(-5, 90), w = rand(12, 38), h = rand(8, 26);
+            return `polygon(${x}% ${y}%, ${x+w}% ${y}%, ${x+w}% ${y+h}%, ${x}% ${y+h}%)`; }, // blok
+    () => { const x = rand(-10, 90), y = rand(-10, 90), w = rand(16, 42), h = rand(8, 26), s = rand(-14, 14);
+            return `polygon(${x}% ${y}%, ${x+w}% ${y+s}%, ${x+w}% ${y+h+s}%, ${x}% ${y+h}%)`; } // skośne
+  ];
+
+  // --- INTRO: mocny glitch na wierzchu ---
+  async function introGlitch(){
+    const steps = parseInt(getComputedStyle(root).getPropertyValue('--intro-steps')) || 9;
+    const intensity = parseFloat(getComputedStyle(root).getPropertyValue('--intro-intensity')) || 4.2;
+    const clipProb = parseFloat(getComputedStyle(root).getPropertyValue('--intro-clip')) || 0.75;
+    const layers = $$(".g", glitch);
+
+    for (let i=0; i<steps; i++){
+      for (const d of layers){
+        const dx = (Math.random()*2-1) * intensity * 5.0;
+        const dy = (Math.random()*2-1) * intensity * 4.2;
+        const rot= (Math.random()*2-1) * 1.2;
+        const sc = 1 + (Math.random()*2-1) * 0.03;
+        d.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${sc})`;
+        d.style.opacity = 0.98;
+        d.style.clipPath = Math.random() < clipProb ? choice(clipFns)() : "none";
+        d.style.zIndex = 8;
+      }
+      await new Promise(r => setTimeout(r, rand(40, 90)));
+    }
+
+    // cleanup
+    for (const d of $$(".g", glitch)){
+      d.style.clipPath = "none";
+      d.style.zIndex = 2;
+      d.style.opacity = "";
+      d.style.transform = "";
+    }
+    glitch.classList.remove("intro");
+  }
+  introGlitch();
+  setTimeout(() => glitch.classList.remove("intro"),
+    parseInt(getComputedStyle(root).getPropertyValue('--intro-ms')) || 1400);
+
+  // --- HALO: podąża za kursorem, zmienia rozmiar ---
+  let raf = null;
+  let overBase = false;
+
+  // Przybliżenie: jeśli kursor jest nad <img> bazy, traktuj jako „nad białym glifem”
+  // (dokładniejsze rozpoznanie wymagałoby inline SVG).
+  base.addEventListener('mouseenter', () => overBase = true);
+  base.addEventListener('mouseleave', () => overBase = false);
+
+  function renderHalo(e, boost=false){
+    const rect = wrap.getBoundingClientRect();
+    const dx = e.clientX - rect.left;
+    const dy = e.clientY - rect.top;
+
+    // rozmiar – większy nad bazą
+    const size = getComputedStyle(root).getPropertyValue(overBase ? '--halo-size-large' : '--halo-size-small').trim();
+
+    // jasność – krótkie podbicie na wejściu
+    const bright = parseFloat(getComputedStyle(root).getPropertyValue('--halo-bright')) || 1.0;
+    const spark  = parseFloat(getComputedStyle(root).getPropertyValue('--halo-spark'))  || 1.25;
+    const k = boost ? bright * spark : bright;
+
+    // gradient: centrum białe -> złoto -> pomarańcz -> przezroczyste
+    halo.style.background = `radial-gradient(circle ${size} at ${dx}px ${dy}px,
+        rgba(255,255,255,${0.95 * k}) 0%,
+        rgba(255,214,120,${0.78 * k}) 20%,
+        rgba(255,170,60, ${0.55 * k}) 40%,
+        rgba(255,120,30, ${0.30 * k}) 58%,
+        rgba(255,120,30, 0) 72%)`;
+
+    halo.style.opacity = 1;
+  }
+
+  function onEnter(e){
+    renderHalo(e, true); // szybki „flash”
+    window.addEventListener('mousemove', onMove);
+  }
+  function onMove(e){
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => renderHalo(e, false));
+  }
+  function onLeave(){
+    window.removeEventListener('mousemove', onMove);
+    halo.style.opacity = 0;
+  }
+
+  wrap.addEventListener('mouseenter', onEnter);
+  wrap.addEventListener('mouseleave', onLeave);
+})();
+</script>
+</body>
+</html>
