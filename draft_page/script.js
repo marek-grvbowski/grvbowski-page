@@ -66,11 +66,17 @@ let revertTimer;
 const supportsScrollEnd = "onscrollend" in window;
 let leftIntroOnce = false;
 
+function isFromCtrlFab(target) {
+  if (!ctrlFab || !(target instanceof Element)) return false;
+  return ctrlFab.contains(target);
+}
+
 function setHeaderVisible(visible) {
   if (!header) return;
   header.classList.toggle("header--visible", visible);
   header.classList.toggle("header--hidden", !visible);
   header.setAttribute("aria-hidden", String(!visible));
+  header.toggleAttribute("inert", !visible);
 }
 function setTone(tone) {
   if (!tone || tone === currentTone) return;
@@ -168,7 +174,7 @@ function atIntro() {
 function atHeroTop() {
   if (!hero) return false;
   const top = hero.getBoundingClientRect().top;
-  return top > -2 && top < 2;
+  return Math.abs(top) <= 4;
 }
 function goIntro() {
   intro?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -182,6 +188,7 @@ function jumpToHero() {
   introJumping = true;
   setCtrlState("arrow");
   goHero();
+  leftIntroOnce = true;
   window.setTimeout(() => { introJumping = false; }, prefersReducedMotion ? 200 : 520);
 }
 
@@ -197,14 +204,12 @@ window.addEventListener("wheel", (event) => {
   }
 }, wheelOptions);
 
-const pointerOptions = { passive: false };
-window.addEventListener("pointerdown", (event) => {
-  if (event.button !== 0 || !event.isPrimary) return;
+window.addEventListener("click", (event) => {
   if (!atIntro()) return;
-  if (ctrlFab && event.target instanceof Element && ctrlFab.contains(event.target)) return;
+  if (isFromCtrlFab(event.target)) return;
   event.preventDefault();
   jumpToHero();
-}, pointerOptions);
+}, { passive: false });
 
 window.addEventListener("keydown", (event) => {
   if (event.metaKey || event.ctrlKey || event.altKey) return;

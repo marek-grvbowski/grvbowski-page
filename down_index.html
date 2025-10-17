@@ -188,15 +188,15 @@ textarea {
 <p>Helping businesses optimize sales strategies and grow through practical, data-driven solutions.</p>
 <div class="icons">
 <div class="icon-container">
-<a id="referencesButton" title="View References"><i class="fas fa-quote-right"></i></a>
+<a id="referencesButton" href="#" role="button" tabindex="0" aria-label="Pokaż referencje"><i class="fas fa-quote-right"></i></a>
 <div class="icon-label">References</div>
 </div>
 <div class="icon-container">
-<a id="calendarButton" title="View Calendar"><i class="fas fa-calendar-alt"></i></a>
+<a id="calendarButton" href="#" role="button" tabindex="0" aria-label="Pokaż kalendarz"><i class="fas fa-calendar-alt"></i></a>
 <div class="icon-label">Calendar</div>
 </div>
 <div class="icon-container">
-<a id="contactButton" title="Contact Form"><i class="fas fa-envelope"></i></a>
+<a id="contactButton" href="#" role="button" tabindex="0" aria-label="Pokaż formularz kontaktowy"><i class="fas fa-envelope"></i></a>
 <div class="icon-label">Contact form</div>
 </div>
 <div class="icon-container">
@@ -265,42 +265,100 @@ const nextButton = document.getElementById('nextButton');
 let currentIndex = 0;
 
 function closeAllContainers() {
-[carouselContainer, calendarContainer, contactContainer].forEach(container => {
-container.classList.remove('show');
-container.style.maxHeight = '0';
-container.style.opacity = '0';
-container.style.padding = '0';
-});
+    [carouselContainer, calendarContainer, contactContainer].forEach(container => {
+        if (!container) {
+            return;
+        }
+        container.classList.remove('show');
+        container.style.maxHeight = '0';
+        container.style.opacity = '0';
+        container.style.padding = '0';
+    });
 }
 
 function toggleContainer(container) {
-if (!container.classList.contains('show')) {
-closeAllContainers();
-container.classList.add('show');
-container.style.maxHeight = '300px';
-container.style.opacity = '1';
-container.style.padding = '20px';
-} else {
-container.classList.remove('show');
-container.style.maxHeight = '0';
-container.style.opacity = '0';
-container.style.padding = '0';
-}
+    if (!container) {
+        return;
+    }
+
+    if (!container.classList.contains('show')) {
+        closeAllContainers();
+        container.classList.add('show');
+        container.style.maxHeight = '300px';
+        container.style.opacity = '1';
+        container.style.padding = '20px';
+    } else {
+        container.classList.remove('show');
+        container.style.maxHeight = '0';
+        container.style.opacity = '0';
+        container.style.padding = '0';
+    }
 }
 
-referencesButton.addEventListener('click', () => toggleContainer(carouselContainer));
-calendarButton.addEventListener('click', () => toggleContainer(calendarContainer));
-contactButton.addEventListener('click', () => toggleContainer(contactContainer));
+function handleToggleEvent(event, container) {
+    if (event.type === 'click') {
+        if (event.detail === 0) {
+            event.preventDefault();
+            return;
+        }
+
+        event.preventDefault();
+        toggleContainer(container);
+        return;
+    }
+
+    if (event.type === 'keydown') {
+        const key = event.key;
+        if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+            event.preventDefault();
+            toggleContainer(container);
+        }
+    }
+}
+
+function registerToggleControl(control, container) {
+    if (!control) {
+        return;
+    }
+
+    control.addEventListener('click', event => handleToggleEvent(event, container));
+    control.addEventListener('keydown', event => handleToggleEvent(event, container));
+}
+
+registerToggleControl(referencesButton, carouselContainer);
+registerToggleControl(calendarButton, calendarContainer);
+registerToggleControl(contactButton, contactContainer);
 
 function updateCarousel() {
-const offset = -currentIndex * 100;
-carouselWrapper.style.transform = `translateX(${offset}%)`;
+    if (!carouselWrapper) {
+        return;
+    }
+    const offset = -currentIndex * 100;
+    carouselWrapper.style.transform = `translateX(${offset}%)`;
 }
 
-nextButton.addEventListener('click', () => {
-currentIndex = (currentIndex < carouselWrapper.children.length - 1) ? currentIndex + 1 : 0;
-updateCarousel();
-});
+if (nextButton) {
+    nextButton.addEventListener('click', event => {
+        event.preventDefault();
+        if (!carouselWrapper) {
+            return;
+        }
+        currentIndex = (currentIndex < carouselWrapper.children.length - 1) ? currentIndex + 1 : 0;
+        updateCarousel();
+    });
+
+    nextButton.addEventListener('keydown', event => {
+        const key = event.key;
+        if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+            event.preventDefault();
+            if (!carouselWrapper) {
+                return;
+            }
+            currentIndex = (currentIndex < carouselWrapper.children.length - 1) ? currentIndex + 1 : 0;
+            updateCarousel();
+        }
+    });
+}
 </script>
 
 </body>

@@ -99,13 +99,17 @@ body[data-tone="silver"] {
   background: var(--text);
   border-radius: 999px;
   transform: translateX(-50%);
-  transition: transform .36s cubic-bezier(.33,1,.68,1), width .36s cubic-bezier(.33,1,.68,1), opacity .24s ease;
-  will-change: transform, width, opacity;
+  transform-origin: 50% 50%;
+  transition: transform .36s cubic-bezier(.33,1,.68,1), width .36s cubic-bezier(.33,1,.68,1), opacity .24s ease, top .36s cubic-bezier(.33,1,.68,1);
+  will-change: transform, width, opacity, top;
 }
 .ctrl-fab .l1{ top: 18px; }
 .ctrl-fab .l2{ top: 24px; }
 .ctrl-fab .l3{ top: 30px; }
 .ctrl-fab.is-burger .line{ opacity: 1; }
+.ctrl-fab.is-arrow .line{
+  transform-origin: 50% 0%;
+}
 .ctrl-fab.is-arrow .l1{
   top: 22px;
   transform: translateX(-50%) rotate(-40deg);
@@ -135,9 +139,13 @@ body[data-tone="silver"] {
   pointer-events: auto;
   display: flex;
   gap: clamp(12px, 2.8vw, 30px);
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity .45s ease, transform .45s ease;
+  opacity: 0;
+  transform: translateY(-14px);
+  visibility: hidden;
+  transition-property: opacity, transform, visibility;
+  transition-duration: .45s, .45s, 0s;
+  transition-timing-function: ease, ease, linear;
+  transition-delay: 0s, 0s, .45s;
   will-change: opacity, transform;
 }
 
@@ -184,8 +192,14 @@ body[data-tone="silver"] {
 .nav a:focus-visible{ --lift: -1px; }
 
 /* header hidden/shown */
-.header--hidden .nav{ opacity: 0; transform: translateY(-14px); pointer-events:none }
-.header--visible .nav{ opacity: 1; transform: translateY(0) }
+.header--hidden .nav{ pointer-events:none }
+.header--visible .nav{
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s, 0s, 0s;
+}
 
 /* ---------- Background (scroll‑tied light sweep) ---------- */
 .bg{
@@ -245,9 +259,24 @@ h3{font-size: clamp(1.2rem, 2.6vw, 1.4rem); font-weight:600;}
   position: relative;
   color: var(--text);
   background-image: radial-gradient(1600px 1000px at var(--sx) var(--sy), rgba(0,0,0,.35), transparent 78%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: currentColor;
+}
+
+@supports (background-clip: text) {
+  .ink{
+    background-color: var(--text);
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@supports (-webkit-background-clip: text) {
+  .ink{
+    background-color: var(--text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 ul.tick{padding-left: 1.1em; margin: .8rem 0 0}
@@ -289,7 +318,7 @@ ul.tick li{margin:.25rem 0}
 
 /* ---------- Highlights ---------- */
 .highlights{display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 2.4vw, 24px)}
-.hl .big{font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800}
+.hl .big{font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700}
 .hl p{color: var(--muted)}
 @media (max-width: 920px){ .highlights{grid-template-columns: repeat(2, 1fr)} }
 
