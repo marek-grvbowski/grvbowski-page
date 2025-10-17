@@ -45,63 +45,6 @@ updateScrollEffects();
 navLinks.forEach((link) => {
   link.dataset.text = link.textContent?.trim() || "";
 });
-const navStates = new WeakMap();
-function ensureNavState(link) {
-  if (!navStates.has(link)) {
-    navStates.set(link, { tx: 0, ty: 0, targetTx: 0, targetTy: 0, rafId: null });
-  }
-  return navStates.get(link);
-}
-function animateLink(link) {
-  const state = ensureNavState(link);
-  const ease = prefersReducedMotion ? 1 : 0.18;
-  state.tx += (state.targetTx - state.tx) * ease;
-  state.ty += (state.targetTy - state.ty) * ease;
-  link.style.setProperty("--tx", `${state.tx.toFixed(2)}px`);
-  link.style.setProperty("--ty", `${state.ty.toFixed(2)}px`);
-  const stillAnimating = !prefersReducedMotion && (Math.abs(state.targetTx - state.tx) > 0.1 || Math.abs(state.targetTy - state.ty) > 0.1);
-  if (stillAnimating) {
-    state.rafId = requestAnimationFrame(() => animateLink(link));
-  } else {
-    state.rafId = null;
-    if (prefersReducedMotion) {
-      link.style.setProperty("--tx", "0px");
-      link.style.setProperty("--ty", "0px");
-    }
-  }
-}
-navLinks.forEach((link) => {
-  link.addEventListener("mousemove", (event) => {
-    const rect = link.getBoundingClientRect();
-    const mx = ((event.clientX - rect.left) / rect.width) * 100;
-    const my = ((event.clientY - rect.top) / rect.height) * 100;
-    link.style.setProperty("--mx", `${mx}%`);
-    link.style.setProperty("--my", `${my}%`);
-
-    const state = ensureNavState(link);
-    if (prefersReducedMotion) {
-      state.targetTx = 0;
-      state.targetTy = 0;
-    } else {
-      state.targetTx = ((mx - 50) / 50) * 6;
-      state.targetTy = ((my - 50) / 50) * 6;
-    }
-    if (!state.rafId) state.rafId = requestAnimationFrame(() => animateLink(link));
-  });
-  link.addEventListener("mouseleave", () => {
-    link.style.removeProperty("--mx");
-    link.style.removeProperty("--my");
-    const state = ensureNavState(link);
-    state.targetTx = 0;
-    state.targetTy = 0;
-    if (!state.rafId && !prefersReducedMotion) {
-      state.rafId = requestAnimationFrame(() => animateLink(link));
-    } else if (prefersReducedMotion) {
-      link.style.setProperty("--tx", "0px");
-      link.style.setProperty("--ty", "0px");
-    }
-  });
-});
 
 // ---------- Smooth anchor scroll ----------
 $$('a[href^="#"]').forEach((anchor) => {
@@ -295,12 +238,12 @@ ctrlFab?.addEventListener("click", (event) => {
 });
 
 // ---------- Ripple inside glyphs (track mouse position) ----------
-const navHoverLinks = $$(".nav a");
+const navHoverLinks = navLinks;
 
 const NAV_INFLUENCE_EXTRA = 70;
 const NAV_MAX_SHIFT = 9; // px, translation cap to avoid layout jumps
 
-const navGlyphStates = new Map();
+const navHoverStates = new Map();
 let navPointerX = null;
 let navPointerY = null;
 let navRaf = 0;
@@ -371,7 +314,7 @@ function updateNavTranslations() {
   const shiftLimit = window.innerWidth <= 600 ? NAV_MAX_SHIFT * 0.75 : NAV_MAX_SHIFT;
 
   navHoverLinks.forEach((link) => {
-    const state = navGlyphStates.get(link);
+    const state = navHoverStates.get(link);
     if (!state) return;
 
     const rect = link.getBoundingClientRect();
@@ -417,7 +360,7 @@ navHoverLinks.forEach((link) => {
     stickyRunning: false,
     cooldownUntil: 0
   };
-  navGlyphStates.set(link, state);
+  navHoverStates.set(link, state);
 
   link.addEventListener("pointerenter", (e) => {
     navPointerX = e.clientX;
@@ -471,7 +414,7 @@ addEventListener("pointerout", (e) => {
   if (e.relatedTarget) return;
   navPointerX = null;
   navPointerY = null;
-  navGlyphStates.forEach((state) => {
+  navHoverStates.forEach((state) => {
     if (state.active) {
       state.active = false;
       startNavStickiness(state, { force: true });
