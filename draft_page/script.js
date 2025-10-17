@@ -287,13 +287,14 @@ ctrlFab?.addEventListener("click", (event) => {
     goIntro();
     scheduleBurgerReset();
   }
+});
 // ---------- Ripple inside glyphs (track mouse position) ----------
 const navHoverLinks = $$(".nav a");
 
 const NAV_INFLUENCE_EXTRA = 70;
 const NAV_MAX_SHIFT = 9; // px, translation cap to avoid layout jumps
 
-const navStates = new Map();
+const navGlyphStates = new Map();
 let navPointerX = null;
 let navPointerY = null;
 let navRaf = 0;
@@ -364,7 +365,7 @@ function updateNavTranslations() {
   const shiftLimit = window.innerWidth <= 600 ? NAV_MAX_SHIFT * 0.75 : NAV_MAX_SHIFT;
 
   navHoverLinks.forEach((link) => {
-    const state = navStates.get(link);
+    const state = navGlyphStates.get(link);
     if (!state) return;
 
     const rect = link.getBoundingClientRect();
@@ -410,7 +411,7 @@ navHoverLinks.forEach((link) => {
     stickyRunning: false,
     cooldownUntil: 0
   };
-  navStates.set(link, state);
+  navGlyphStates.set(link, state);
 
   link.addEventListener("pointerenter", (e) => {
     navPointerX = e.clientX;
@@ -464,7 +465,7 @@ addEventListener("pointerout", (e) => {
   if (e.relatedTarget) return;
   navPointerX = null;
   navPointerY = null;
-  navStates.forEach((state) => {
+  navGlyphStates.forEach((state) => {
     if (state.active) {
       state.active = false;
       startNavStickiness(state, { force: true });
