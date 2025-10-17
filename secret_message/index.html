@@ -12,6 +12,7 @@
       --fg: #f2f2f2;
       --muted: #9a9a9a;
       --accent: #7cffc0;
+      --border: #1f1f1f;
     }
     body {
       background: radial-gradient(circle at 30% 20%, #111 0%, #0b0b0b 60%),
@@ -25,13 +26,13 @@
     .card {
       text-align: center;
       padding: clamp(24px, 3vw, 40px);
-      border: 1px solid #1f1f1f;
+      border: 1px solid var(--border);
       border-radius: 16px;
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
       backdrop-filter: blur(2px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
       animation: pop 400ms ease-out both;
-      width: min(400px, 90%);
+      width: min(420px, 90%);
     }
     h1 {
       margin: 0 0 16px;
@@ -49,7 +50,7 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
-      margin: 20px 0 30px;
+      margin: 20px 0 22px;
       padding-left: 10px;
     }
     label {
@@ -64,14 +65,55 @@
       accent-color: var(--accent);
       transform: scale(1.2);
     }
-    label:hover {
-      color: var(--accent);
-    }
+    label:hover { color: var(--accent); }
     p.note {
       color: var(--muted);
       font-size: 14px;
-      margin: 0;
+      margin: 0 0 26px;
     }
+
+    /* Przyciski */
+    a.btn {
+      position: relative;
+      display: inline-block;
+      background: var(--accent);
+      color: #000;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    a.btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 16px rgba(124,255,192,0.3);
+    }
+    a.btn::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -75%;
+      width: 50%;
+      height: 100%;
+      background: rgba(255,255,255,0.35);
+      transform: skewX(-20deg);
+      transition: left 0.5s ease;
+    }
+    a.btn:hover::before {
+      left: 125%;
+    }
+    a.btn:active {
+      animation: heartPulse 1s ease;
+    }
+
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); box-shadow: none; }
+      30% { transform: scale(1.1); box-shadow: 0 0 20px rgba(124,255,192,0.6); }
+      50% { transform: scale(0.95); }
+      70% { transform: scale(1.08); }
+    }
+
     @keyframes pulse {
       0%, 100% { transform: scale(1); opacity: 1; }
       40% { transform: scale(1.06); opacity: 0.96; }
@@ -86,12 +128,18 @@
 <body>
   <main class="card">
     <h1>Pójdziesz ze mną do kina? <span class="emojis">🫶🫶</span></h1>
+
     <div class="options">
       <label><input type="checkbox"> tak</label>
       <label><input type="checkbox"> oczywiście</label>
       <label><input type="checkbox"> jak najbardziej</label>
     </div>
-    <p class="note">* jak już zaznaczysz odpowiedź, wyślij mi proszę screena, bo nie miałem czasu napisać logiki, która by mi to przekazała ze strony 🤓</p>
+
+    <p class="note">* jak już zaznaczysz — wyślij mi screena, bo nie miałem czasu napisać logiki, która by mi to przekazała 😅</p>
+
+    <a class="btn" href="https://www.multikino.pl/repertuar/krakow/filmy/jedna-bitwa-po-drugiej" target="_blank" rel="noopener noreferrer">
+      moja propozycja 🎬
+    </a>
   </main>
 </body>
 </html>
