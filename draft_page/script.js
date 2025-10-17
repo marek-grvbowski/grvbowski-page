@@ -123,11 +123,14 @@ let revertTimer;
 const supportsScrollEnd = "onscrollend" in window;
 let leftIntroOnce = false;
 
+setHeaderVisible(false);
+
 function setHeaderVisible(visible) {
   if (!header) return;
   header.classList.toggle("header--visible", visible);
   header.classList.toggle("header--hidden", !visible);
   header.setAttribute("aria-hidden", String(!visible));
+  header.toggleAttribute("inert", !visible);
 }
 function setTone(tone) {
   if (!tone || tone === currentTone) return;
