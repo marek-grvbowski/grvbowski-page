@@ -178,7 +178,6 @@
       <label><input type="checkbox" class="chk"> jak najbardziej</label>
     </div>
 
-    <p class="note">* jak już zaznaczysz — wyślij mi screena, bo nie miałem czasu napisać logiki, która by mi to przekazała 😅</p>
 
     <a id="goBtn" class="btn state0" href="https://www.multikino.pl/repertuar/krakow/filmy/jedna-bitwa-po-drugiej" target="_blank" rel="noopener noreferrer">
       moja propozycja 🎬
@@ -202,8 +201,8 @@
         // subtle pop when becomes active
         goBtn.style.animation = 'pop .35s ease';
         // spawn celebration emoji
-        burst('🥰', 5);
-        setTimeout(()=> goBtn.style.animation = 'none', 400);
+        burst('🥰', 8);
+        setTimeout(()=> goBtn.style.animation = 'none', 600);
       } else {
         goBtn.style.animation = 'none';
       }
@@ -212,11 +211,11 @@
     function updateState(){
       const count = Array.from(checkboxes).filter(c => c.checked).length;
       if (count === 0) {
-        msg.textContent = '';
+        msg.textContent = 'musisz odpowiedzieć';
         msg.className = 'msg';
         setBtnState(0);
       } else if (count === 1) {
-        msg.textContent = 'chyba za mało chcesz';
+        msg.textContent = 'na pewno chcesz????';
         msg.className = 'msg warn';
         setBtnState(1);
       } else if (count === 2) {
@@ -253,10 +252,10 @@
       if (count < 3) {
         e.preventDefault();
         if (count === 1) burst('🥺', 5);
-        else if (count === 2) burst('🥹', 5);
+        else if (count === 2) burst('🥹', 7);
         // animate message shake
         msg.style.animation = 'pop .3s ease';
-        setTimeout(()=> msg.style.animation = 'none', 320);
+        setTimeout(()=> msg.style.animation = 'none', 520);
       }
     });
 
