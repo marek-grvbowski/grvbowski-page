@@ -1,205 +1,520 @@
 <!doctype html>
-<html lang="pl">
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>grvbowski.</title>
-<style>
-  :root{
-    /* Intro (po wejściu) */
-    --intro-ms: 1400;
-    --intro-intensity: 4.2px;
-    --intro-steps: 9;
-    --intro-clip: 0.75;
-
-    /* Halo po hoverze */
-    --halo-size-small: 26vmin;   /* średnica poza glifem */
-    --halo-size-large: 42vmin;   /* średnica nad „białym” logo (przybliżenie: nad <img>) */
-    --halo-bright: 1.0;          /* jasność (0..1) */
-    --halo-spark: 1.25;          /* krótkie podbicie na wejściu */
-    --halo-fade-ms: 120;         /* fade in/out */
-
-    /* Ogólne */
-    --bg: #0b0b0e;
-    --w: 720px;
-    --padding-top: 10vh;
-  }
-
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body{
-    margin:0; background:var(--bg);
-    min-height:100svh; display:flex; align-items:flex-start; justify-content:center;
-    padding-top:var(--padding-top);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-    overflow: hidden;
-  }
-
-  .glitch{ position:relative; display:inline-block; line-height:0; isolation:isolate; }
-  .wrap{ position:relative; width:var(--w); height:auto; cursor:crosshair; }
-
-  .layer{ position:absolute; inset:0; display:block; will-change:transform,opacity,filter; }
-  .layer > img{ display:block; width:100%; height:auto; }
-
-  /* Kolejność warstw: podczas intro glitch nad bazą; później pod bazą */
-  .base{ z-index:5; }
-  .g{    z-index:2; opacity:0.22; mix-blend-mode:screen; }
-
-  .intro .g{ z-index:7; opacity:0.98; }
-  .intro .base{ z-index:6; }
-
-  /* Kolory (działają na <img>) */
-  .g.r > img{ filter: invert(19%) sepia(97%) saturate(6350%) hue-rotate(356deg) brightness(105%) contrast(118%); } /* czerwony */
-  .g.b > img{ filter: invert(84%) sepia(16%) saturate(4772%) hue-rotate(161deg) brightness(96%) contrast(91%); }  /* niebieski */
-  .g.p > img{ filter: invert(37%) sepia(93%) saturate(5321%) hue-rotate(292deg) brightness(95%) contrast(101%); } /* fiolet */
-
-  .g.r{ transform: translate( 0.2px, -0.2px); }
-  .g.b{ transform: translate(-0.2px,  0.2px); }
-  .g.p{ transform: translate( 0.16px, 0.14px); }
-
-  /* HALO – warstwa na wierzchu, dynamiczna pozycja/rozmiar, zawsze renderowana */
-  .halo{
-    position:absolute; inset:0; pointer-events:none; z-index:10; opacity:0;
-    transition: opacity var(--halo-fade-ms) ease;
-    background: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .layer, .layer * { animation:none !important; transition:none !important; }
-  }
-</style>
-</head>
-<body>
-
-<div class="glitch intro" id="glitch"
-     data-src="logo-tight.svg">
-  <div class="wrap" id="wrap">
-    <div class="layer base" id="base"><img alt=""></div>
-
-    <div class="layer g r"><img alt=""></div>
-    <div class="layer g b"><img alt=""></div>
-    <div class="layer g p"><img alt=""></div>
-
-    <div class="halo" id="halo"></div>
-  </div>
-</div>
-
-<script>
-(() => {
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-  const root = document.documentElement;
-
-  const glitch = $("#glitch");
-  const wrap   = $("#wrap");
-  const base   = $("#base img");
-  const gImgs  = $$(".g img", glitch);
-  const halo   = $("#halo");
-  const src = glitch.getAttribute("data-src");
-  if (!src) return;
-
-  // Ustaw źródło dla wszystkich warstw
-  base.src = src; gImgs.forEach(i => i.src = src);
-
-  // Helpers
-  const rand = (min,max) => Math.random() * (max - min) + min;
-  const choice = arr => arr[Math.floor(Math.random()*arr.length)];
-
-  // Jednopoligonowe „cięcia”
-  const clipFns = [
-    () => { const y = rand(-5, 90), h = rand(6, 26);
-            return `polygon(0% ${y}%, 100% ${y}%, 100% ${y+h}%, 0% ${y+h}%)`; }, // poziom
-    () => { const x = rand(-5, 90), w = rand(6, 24);
-            return `polygon(${x}% 0%, ${x+w}% 0%, ${x+w}% 100%, ${x}% 100%)`; }, // pion
-    () => { const x = rand(-5, 90), y = rand(-5, 90), w = rand(12, 38), h = rand(8, 26);
-            return `polygon(${x}% ${y}%, ${x+w}% ${y}%, ${x+w}% ${y+h}%, ${x}% ${y+h}%)`; }, // blok
-    () => { const x = rand(-10, 90), y = rand(-10, 90), w = rand(16, 42), h = rand(8, 26), s = rand(-14, 14);
-            return `polygon(${x}% ${y}%, ${x+w}% ${y+s}%, ${x+w}% ${y+h+s}%, ${x}% ${y+h}%)`; } // skośne
-  ];
-
-  // --- INTRO: mocny glitch na wierzchu ---
-  async function introGlitch(){
-    const steps = parseInt(getComputedStyle(root).getPropertyValue('--intro-steps')) || 9;
-    const intensity = parseFloat(getComputedStyle(root).getPropertyValue('--intro-intensity')) || 4.2;
-    const clipProb = parseFloat(getComputedStyle(root).getPropertyValue('--intro-clip')) || 0.75;
-    const layers = $$(".g", glitch);
-
-    for (let i=0; i<steps; i++){
-      for (const d of layers){
-        const dx = (Math.random()*2-1) * intensity * 5.0;
-        const dy = (Math.random()*2-1) * intensity * 4.2;
-        const rot= (Math.random()*2-1) * 1.2;
-        const sc = 1 + (Math.random()*2-1) * 0.03;
-        d.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${sc})`;
-        d.style.opacity = 0.98;
-        d.style.clipPath = Math.random() < clipProb ? choice(clipFns)() : "none";
-        d.style.zIndex = 8;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FrugalGPT Cost Playground — Marek Grabowski</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slatebg: "#0b1220"
+          }
+        }
       }
-      await new Promise(r => setTimeout(r, rand(40, 90)));
+    };
+  </script>
+  <!-- React + ReactDOM UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Babel for in-browser JSX transform (ok for demo) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Recharts UMD -->
+  <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+  <style>
+    html, body { background:#0a0f1a; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-50 bg-slate-950">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const {
+      ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList,
+      PieChart, Pie, Cell
+    } = Recharts;
+
+    // Model catalog with indicative pricing (USD per 1k tokens)
+    const DEFAULT_CATALOG = [
+      // HIGH / TOP
+      { id: "gpt-4.1", name: "OpenAI GPT-4.1", in: 0.0100, out: 0.0300, tier: "high" },
+      { id: "gpt-4o", name: "OpenAI GPT-4o", in: 0.0050, out: 0.0150, tier: "high" },
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro (indicative)", in: 0.0025, out: 0.0100, tier: "high" },
+
+      // MID
+      { id: "gpt-4.1-mini", name: "OpenAI GPT-4.1 mini", in: 0.0015, out: 0.0060, tier: "mid" },
+      { id: "claude-3.5-sonnet", name: "Anthropic Claude 3.5 Sonnet", in: 0.0030, out: 0.0150, tier: "mid" },
+      { id: "mistral-large", name: "Mistral Large", in: 0.0020, out: 0.0060, tier: "mid" },
+      { id: "cohere-command-r+", name: "Cohere Command R+ (indicative)", in: 0.0015, out: 0.0030, tier: "mid" },
+      { id: "llama-3.1-70b", name: "Llama 3.1 70B (hosted)", in: 0.0010, out: 0.0020, tier: "mid" },
+
+      // LOW / SMALL
+      { id: "llama-3.1-8b", name: "Llama 3.1 8B (hosted)", in: 0.0003, out: 0.00061, tier: "low" },
+      { id: "claude-3.5-haiku", name: "Anthropic Claude 3.5 Haiku (indicative)", in: 0.0008, out: 0.0030, tier: "low" },
+      { id: "gpt-j", name: "GPT-J (self-host est.)", in: 0.0002, out: 0.0002, tier: "low" },
+    ];
+
+    const UI = {
+      good: "#16a34a",
+      bad: "#dc2626",
+      pie: ["#16a34a", "#f59e0b", "#3b82f6"],
+    };
+
+    const currency = (n) => n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+    function App(){
+      // Persist editable prices in localStorage so refreshing doesn't wipe
+      const [catalog, setCatalog] = useState(() => {
+        try {
+          const saved = localStorage.getItem("frugal_catalog");
+          if (saved) return JSON.parse(saved);
+        } catch {}
+        return DEFAULT_CATALOG;
+      });
+
+      const saveCatalog = (next) => {
+        setCatalog(next);
+        try { localStorage.setItem("frugal_catalog", JSON.stringify(next)); } catch {}
+      };
+
+      // Tabs
+      const [tab, setTab] = useState("about");
+
+      // Calculator state
+      const [monthlyQueries, setMonthlyQueries] = useState(500000);
+      const [promptTokens, setPromptTokens] = useState(300);
+      const [completionTokens, setCompletionTokens] = useState(300);
+      const [smallId, setSmallId] = useState("llama-3.1-8b");
+      const [midId, setMidId] = useState("mistral-large");
+      const [topId, setTopId] = useState("gpt-4.1");
+      const [routingSmall, setRoutingSmall] = useState(0.7);
+      const [routingMid, setRoutingMid] = useState(0.2);
+      const [routingTop, setRoutingTop] = useState(0.1);
+      const [showBreakdown, setShowBreakdown] = useState(false);
+
+      const priceOf = (id, key) => {
+        const m = catalog.find(x=>x.id===id);
+        return m ? m[key] : 0;
+      };
+
+      // CO2 state
+      const [kwhSmall, setKwhSmall] = useState(10.0);
+      const [kwhMid, setKwhMid] = useState(18.0);
+      const [kwhTop, setKwhTop] = useState(35.0);
+      const [gridCO2, setGridCO2] = useState(0.6);
+
+      const tokensPerQuery = promptTokens + completionTokens;
+      const monthlyTokens = monthlyQueries * tokensPerQuery;
+
+      const smallIn = priceOf(smallId,'in'), smallOut = priceOf(smallId,'out');
+      const midIn   = priceOf(midId,'in'),   midOut   = priceOf(midId,'out');
+      const topIn   = priceOf(topId,'in'),   topOut   = priceOf(topId,'out');
+
+      const baselineCostPerQuery = (promptTokens/1000)*topIn + (completionTokens/1000)*topOut;
+      const baselineYearly = monthlyQueries * baselineCostPerQuery * 12;
+
+      const cascadeCostPerQuery = routingSmall*((promptTokens/1000)*smallIn + (completionTokens/1000)*smallOut)
+        + routingMid*((promptTokens/1000)*midIn + (completionTokens/1000)*midOut)
+        + routingTop*((promptTokens/1000)*topIn + (completionTokens/1000)*topOut);
+      const cascadeYearly = monthlyQueries * cascadeCostPerQuery * 12;
+
+      const savingsPct = 1 - (cascadeYearly / baselineYearly);
+      const savedUSD = Math.max(0, baselineYearly - cascadeYearly);
+
+      const routingSum = routingSmall + routingMid + routingTop;
+      const routingWarning = Math.abs(routingSum - 1) > 0.001;
+
+      const perQuerySmall = (promptTokens/1000)*smallIn + (completionTokens/1000)*smallOut;
+      const perQueryMid   = (promptTokens/1000)*midIn   + (completionTokens/1000)*midOut;
+      const perQueryTop   = (promptTokens/1000)*topIn   + (completionTokens/1000)*topOut;
+      const smallYearly = monthlyQueries * routingSmall * perQuerySmall * 12;
+      const midYearly   = monthlyQueries * routingMid   * perQueryMid   * 12;
+      const topYearly   = monthlyQueries * routingTop   * perQueryTop   * 12;
+
+      const barData = [
+        { name: "Baseline (Top only)", $: baselineYearly },
+        { name: "Cascade", $: cascadeYearly },
+      ];
+      const cheaperFirst = cascadeYearly <= baselineYearly;
+      const barColors = [ cheaperFirst ? UI.bad : UI.good, cheaperFirst ? UI.good : UI.bad ];
+      const compareBreakdown = [
+        { name: "Baseline", Small: 0, Mid: 0, Top: baselineYearly },
+        { name: "Cascade", Small: smallYearly, Mid: midYearly, Top: topYearly },
+      ];
+      const pieSegments = [
+        { name: catalog.find(m=>m.id===smallId)?.name || "Small", value: routingSmall },
+        { name: catalog.find(m=>m.id===midId)?.name || "Mid",     value: routingMid },
+        { name: catalog.find(m=>m.id===topId)?.name || "Top",     value: routingTop },
+      ].filter(s=>s.value>0.0001);
+
+      // CO2 derived
+      const baselineMonthlyKwh = (monthlyTokens/1_000_000) * kwhTop;
+      const cascadeMonthlyKwh = (monthlyTokens/1_000_000) * (routingSmall*kwhSmall + routingMid*kwhMid + routingTop*kwhTop);
+      const baselineYearlyCO2 = baselineMonthlyKwh * gridCO2 * 12;
+      const cascadeYearlyCO2 = cascadeMonthlyKwh * gridCO2 * 12;
+      const co2Saved = Math.max(0, baselineYearlyCO2 - cascadeYearlyCO2);
+
+      const TierSelect = ({label, tier, value, onChange}) => (
+        <div className="space-y-1">
+          <label className="text-slate-200 text-sm">{label}</label>
+          <select
+            className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"
+            value={value}
+            onChange={e=>onChange(e.target.value)}
+          >
+            {catalog.filter(m=>m.tier===tier).map(m=>(
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+          <div className="text-xs text-slate-300 mt-1">
+            {(() => {
+              const m = catalog.find(x=>x.id===value);
+              if(!m) return "";
+              return `in: $${m.in} / out: $${m.out} per 1k`;
+            })()}
+          </div>
+        </div>
+      );
+
+      const ModelsEditor = () => {
+        const update = (id, key, val) => {
+          const num = parseFloat(val);
+          const next = catalog.map(m => m.id===id ? {...m, [key]: (Number.isFinite(num)? num : m[key])} : m);
+          saveCatalog(next);
+        };
+        const byTier = (tier) => catalog.filter(m=>m.tier===tier);
+        return (
+          <div className="grid lg:grid-cols-3 gap-6">
+            {["low","mid","high"].map(tier => (
+              <div key={tier} className="p-4 bg-slate-900/80 rounded-xl border border-slate-700">
+                <div className="text-sm uppercase tracking-wide text-slate-200 mb-3">
+                  {tier === "low" ? "Small / Low" : tier === "mid" ? "Mid" : "Top / High"}
+                </div>
+                <ul className="space-y-3 text-sm">
+                  {byTier(tier).map(m => (
+                    <li key={m.id} className="space-y-2">
+                      <div className="text-slate-100 font-medium">{m.name}</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <div className="text-slate-200 text-xs mb-1">In $/1k</div>
+                          <input type="number" step="0.0001" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-2 py-1"
+                            value={m.in} onChange={e=>update(m.id,'in',e.target.value)} />
+                        </div>
+                        <div>
+                          <div className="text-slate-200 text-xs mb-1">Out $/1k</div>
+                          <input type="number" step="0.0001" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-2 py-1"
+                            value={m.out} onChange={e=>update(m.id,'out',e.target.value)} />
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        );
+      };
+
+      return (
+        <div className="max-w-7xl mx-auto p-6 space-y-8">
+          <header className="flex items-center justify-between">
+            <h1 className="text-3xl font-semibold">FrugalGPT Cost Playground</h1>
+            <div className="text-sm text-slate-200">Figures update as you type • /1k token pricing</div>
+          </header>
+
+          {/* Tabs */}
+          <div>
+            <div className="inline-flex rounded-xl border border-slate-700 overflow-hidden">
+              {["about","calc","co2","models"].map(t => (
+                <button
+                  key={t}
+                  onClick={()=>setTab(t)}
+                  className={
+                    "px-4 py-2 text-sm " +
+                    (tab===t ? "bg-slate-800 text-white" : "bg-slate-900/60 text-slate-300 hover:bg-slate-800/60")
+                  }
+                >
+                  {t === "about" ? "About" : t === "calc" ? "Calculator" : t === "co2" ? "CO₂" : "Models"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ABOUT */}
+          {tab==="about" && (
+            <div className="p-5 bg-slate-900/90 rounded-2xl border border-slate-700">
+              <h2 className="text-xl font-semibold mb-3">About this sandbox</h2>
+              <div className="grid md:grid-cols-2 gap-6 text-slate-100 text-sm">
+                <div className="space-y-2">
+                  <h3 className="text-base font-semibold">What this tool shows</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><b>Classic (Baseline)</b>: all traffic sent to the Top/High model.</li>
+                    <li><b>Proposed (Cascade)</b>: traffic split across Small → Mid → Top according to your routing %.</li>
+                    <li><b>Pricing model</b>: cost = (tokens/1k) × price_in/out, summed per tier, × queries × 12 (year).</li>
+                    <li><b>Breakdown charts</b> make the spend structure visible (Small/Mid/Top shares).</li>
+                  </ul>
+                  <h3 className="text-base font-semibold mt-4">How to enter data</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><i>Monthly queries</i> = how many prompts you expect per month.</li>
+                    <li><i>Input size (tokens/query)</i> ≈ prompt length in tokens (not characters).</li>
+                    <li><i>Output tokens/response</i> ≈ typical answer length in tokens.</li>
+                    <li><i>Routing</i> must sum to 1.00 (e.g., 0.7 + 0.2 + 0.1).</li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-base font-semibold">Assumptions & caveats</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Prices are <b>per 1,000 tokens</b>. We keep an indicative catalog; verify with your provider & region.</li>
+                    <li>Quality/latency/guardrails are not modeled here; this is a <i>cost view</i>.</li>
+                    <li>Routing is an input; in real life it’s learned (router) and drifts over time.</li>
+                    <li>Compliance, PHI residency, and caching/RAG can further change costs.</li>
+                  </ul>
+                </div>
+              </div>
+              <p className="text-xs mt-4 text-slate-300">Note: CO₂ accounting is available in the CO₂ tab only. Calculator focuses purely on cost.</p>
+            </div>
+          )}
+
+          {/* CALCULATOR */}
+          {tab==="calc" && (
+            <div className="grid md:grid-cols-12 gap-6">
+              {/* Inputs */}
+              <div className="md:col-span-5 p-5 bg-slate-900/90 rounded-2xl border border-slate-700 h-full">
+                <h2 className="text-xl font-semibold mb-4">Inputs</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-slate-100 text-sm">Monthly queries</label>
+                    <input type="number" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"
+                      value={monthlyQueries} onChange={e=>setMonthlyQueries(+e.target.value||0)} />
+                    <div className="text-slate-300 text-xs mt-1">Estimated prompts per month.</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-slate-100 text-sm">Input size (tokens/query)</label>
+                      <input type="number" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"
+                        value={promptTokens} onChange={e=>setPromptTokens(+e.target.value||0)} />
+                    </div>
+                    <div>
+                      <label className="text-slate-100 text-sm">Output tokens/response</label>
+                      <input type="number" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"
+                        value={completionTokens} onChange={e=>setCompletionTokens(+e.target.value||0)} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-slate-100 text-sm">Small routing (0–1)</label>
+                      <input type="number" step="0.01" className="w-full bg-yellow-900/30 text-slate-100 border border-yellow-800 rounded px-3 py-2"
+                        value={routingSmall} onChange={e=>setRoutingSmall(+e.target.value||0)} />
+                    </div>
+                    <div>
+                      <label className="text-slate-100 text-sm">Mid routing (0–1)</label>
+                      <input type="number" step="0.01" className="w-full bg-yellow-900/30 text-slate-100 border border-yellow-800 rounded px-3 py-2"
+                        value={routingMid} onChange={e=>setRoutingMid(+e.target.value||0)} />
+                    </div>
+                    <div>
+                      <label className="text-slate-100 text-sm">Top routing (0–1)</label>
+                      <input type="number" step="0.01" className="w-full bg-yellow-900/30 text-slate-100 border border-yellow-800 rounded px-3 py-2"
+                        value={routingTop} onChange={e=>setRoutingTop(+e.target.value||0)} />
+                    </div>
+                  </div>
+                  <div className={"text-xs " + (routingWarning?"text-red-300":"text-green-300")}>
+                    Routing sum: {routingSum.toFixed(2)} {routingWarning && "(should equal 1.00)"}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <TierSelect label="Small model" tier="low" value={smallId} onChange={setSmallId} />
+                    <TierSelect label="Mid model" tier="mid" value={midId} onChange={setMidId} />
+                    <TierSelect label="Top model" tier="high" value={topId} onChange={setTopId} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Results */}
+              <div className="md:col-span-7 p-5 bg-slate-900/90 rounded-2xl border border-slate-700 h-full">
+                <h2 className="text-xl font-semibold mb-4">Results</h2>
+
+                {/* HERO summary */}
+                <div className="grid lg:grid-cols-3 gap-4">
+                  <div className="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+                    <div className="text-base uppercase font-semibold text-slate-100">Baseline (Top only) / year</div>
+                    <div className="text-3xl font-bold mt-1 text-slate-50">{currency(baselineYearly)}</div>
+                    <div className="text-xs mt-1 text-slate-200">Formula: all traffic → Top model</div>
+                  </div>
+                  <div className="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+                    <div className="text-base uppercase font-semibold text-slate-100">Cascade / year</div>
+                    <div className="text-3xl font-bold mt-1 text-slate-50">{currency(cascadeYearly)}</div>
+                    <div className="text-xs mt-1 text-slate-200">Weighted by routing % × model prices</div>
+                  </div>
+                  <div className="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+                    <div className="text-base uppercase font-semibold text-slate-100">You save / year</div>
+                    <div className="text-3xl font-bold mt-1 text-green-400">{currency(savedUSD)}</div>
+                    <div className="text-xs mt-1 text-green-300">= Baseline − Cascade {(savingsPct*100).toFixed(1)}%</div>
+                  </div>
+                </div>
+
+                {/* Breakdown toggle */}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-slate-100">Breakdown (how values are computed)</div>
+                  <button className="px-3 py-1 rounded border border-slate-600 bg-slate-800 text-slate-100 text-sm"
+                    onClick={()=>setShowBreakdown(v=>!v)}>{showBreakdown ? "Hide" : "Show"}</button>
+                </div>
+                {showBreakdown && (
+                  <div className="grid md:grid-cols-2 gap-4 mt-3 text-sm text-slate-100">
+                    <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-700">
+                      <div className="font-semibold mb-2">Inputs → Tokens</div>
+                      <div>Tokens per query = <span className="font-mono">{promptTokens}</span> + <span className="font-mono">{completionTokens}</span> = <span className="font-mono">{tokensPerQuery}</span></div>
+                      <div>Monthly tokens = <span className="font-mono">{monthlyQueries.toLocaleString()}</span> × <span className="font-mono">{tokensPerQuery}</span> = <span className="font-mono">{monthlyTokens.toLocaleString()}</span></div>
+                    </div>
+                    <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-700">
+                      <div className="font-semibold mb-2">Effective prices (/1k tokens)</div>
+                      <div>Small: <span className="font-mono">${smallIn}</span> in / <span className="font-mono">${smallOut}</span> out</div>
+                      <div>Mid: <span className="font-mono">${midIn}</span> in / <span className="font-mono">${midOut}</span> out</div>
+                      <div>Top: <span className="font-mono">${topIn}</span> in / <span className="font-mono">${topOut}</span> out</div>
+                    </div>
+                    <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-700 md:col-span-2">
+                      <div className="font-semibold mb-2">Cost formulas</div>
+                      <div>Baseline per query = (prompt/1k×Top_in) + (completion/1k×Top_out)</div>
+                      <div>Cascade per query = Σ routingTier × [(prompt/1k×Tier_in) + (completion/1k×Tier_out)]</div>
+                      <div className="mt-1">Yearly = Monthly queries × cost per query × 12</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* COST bar chart */}
+                <div className="h-80 bg-slate-900/80 rounded-xl p-3 mt-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={barData} margin={{ top: 40, right: 24, left: 0, bottom: 16 }} barCategoryGap={40}>
+                      <XAxis dataKey="name" tick={{ fill: "#f8fafc" }} />
+                      <YAxis tickFormatter={(v)=>currency(v)} tick={{ fill: "#f8fafc" }} />
+                      <Tooltip formatter={(v)=>currency(v)} labelStyle={{ color: "#f8fafc" }} itemStyle={{ color: "#f8fafc" }} contentStyle={{ background: "#0b1220", border:"1px solid #334155", color: "#f8fafc" }} />
+                      <Legend wrapperStyle={{ color: "#f8fafc" }} />
+                      <Bar dataKey="$">
+                        <LabelList dataKey="$" position="top" formatter={(v)=>currency(v)} fill="#f8fafc" offset={12} />
+                        {barData.map((_, i)=>(<Cell key={i} fill={barColors[i]} />))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Breakdown stacked bar */}
+                <div className="h-80 bg-slate-900/80 rounded-xl p-3 mt-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={compareBreakdown} margin={{ top: 24, right: 24, left: 0, bottom: 12 }}>
+                      <XAxis dataKey="name" tick={{ fill: "#f8fafc" }} />
+                      <YAxis tickFormatter={(v)=>currency(v)} tick={{ fill: "#f8fafc" }} />
+                      <Tooltip formatter={(v)=>currency(v)} labelStyle={{ color: "#f8fafc" }} itemStyle={{ color: "#f8fafc" }} contentStyle={{ background: "#0b1220", border:"1px solid #334155", color: "#f8fafc" }} />
+                      <Legend wrapperStyle={{ color: "#f8fafc" }} />
+                      <Bar dataKey="Small" stackId="a" fill="#16a34a" />
+                      <Bar dataKey="Mid" stackId="a" fill="#f59e0b" />
+                      <Bar dataKey="Top" stackId="a" fill="#3b82f6" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Routing pie */}
+                <div className="h-64 bg-slate-900/80 rounded-xl p-3 mt-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pieSegments} dataKey="value" nameKey="name" outerRadius={90}>
+                        {pieSegments.map((_, i)=>(<Cell key={i} fill={UI.pie[i % UI.pie.length]} />))}
+                        <LabelList dataKey="value" position="outside" formatter={(v)=> (v*100).toFixed(0)+"%"} fill="#f8fafc" />
+                      </Pie>
+                      <Tooltip formatter={(v)=> (v*100).toFixed(1)+"%"} labelStyle={{ color: "#f8fafc" }} itemStyle={{ color: "#f8fafc" }} contentStyle={{ background: "#0b1220", border:"1px solid #334155", color: "#f8fafc" }} />
+                      <Legend wrapperStyle={{ color: "#f8fafc" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* CO2 */}
+          {tab==="co2" && (
+            <div className="p-5 bg-slate-900/90 rounded-2xl border border-slate-700">
+              <h2 className="text-xl font-semibold mb-4">CO₂ assumptions (indicative)</h2>
+              <div className="grid md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-slate-100 text-sm">kWh / 1M tokens (Small)</div>
+                  <input type="number" step="0.1" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"
+                    value={kwhSmall} onChange={e=>setKwhSmall(+e.target.value||0)} />
+                </div>
+                <div>
+                  <div className="text-slate-100 text-sm">kWh / 1M tokens (Mid)</div>
+                  <input type="number" step="0.1" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"
+                    value={kwhMid} onChange={e=>setKwhMid(+e.target.value||0)} />
+                </div>
+                <div>
+                  <div className="text-slate-100 text-sm">kWh / 1M tokens (Top)</div>
+                  <input type="number" step="0.1" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"
+                    value={kwhTop} onChange={e=>setKwhTop(+e.target.value||0)} />
+                </div>
+                <div>
+                  <div className="text-slate-100 text-sm">Grid CO₂ (kg/kWh)</div>
+                  <input type="number" step="0.01" className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"
+                    value={gridCO2} onChange={e=>setGridCO2(+e.target.value||0)} />
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-3 gap-4 mt-6">
+                <div className="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+                  <div className="text-base uppercase font-semibold text-slate-100">Baseline CO₂ / year</div>
+                  <div className="text-3xl font-bold mt-1 text-slate-50">{Math.round(baselineYearlyCO2).toLocaleString()} kg</div>
+                  <div className="text-xs mt-1 text-slate-200">Assumes 100% Top model</div>
+                </div>
+                <div className="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+                  <div className="text-base uppercase font-semibold text-slate-100">Cascade CO₂ / year</div>
+                  <div className="text-3xl font-bold mt-1 text-slate-50">{Math.round(cascadeYearlyCO2).toLocaleString()} kg</div>
+                  <div className="text-xs mt-1 text-slate-200">Weighted by routing × kWh factors</div>
+                </div>
+                <div className="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+                  <div className="text-base uppercase font-semibold text-slate-100">CO₂ saved / year</div>
+                  <div className="text-3xl font-bold mt-1 text-green-400">{Math.round(co2Saved).toLocaleString()} kg</div>
+                  <div className="text-xs mt-1 text-green-300">= Baseline − Cascade</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODELS */}
+          {tab==="models" && (
+            <div className="p-5 bg-slate-900/90 rounded-2xl border border-slate-700">
+              <h2 className="text-xl font-semibold mb-4">Models by tier & pricing (editable)</h2>
+              <ModelsEditor />
+              <div className="flex gap-3 mt-4">
+                <button className="px-3 py-2 rounded border border-slate-600 bg-slate-800 text-slate-100 text-sm"
+                  onClick={()=>saveCatalog(DEFAULT_CATALOG)}>Reset prices to catalog</button>
+                <button className="px-3 py-2 rounded border border-slate-600 bg-slate-800 text-slate-100 text-sm"
+                  onClick={()=>{ try{ localStorage.removeItem("frugal_catalog"); location.reload(); }catch{ location.reload(); }}}>Clear & reload</button>
+              </div>
+              <p className="text-xs mt-4 text-slate-300">Edits here are applied everywhere (Calculator & charts). Use this to match your provider/region.</p>
+            </div>
+          )}
+
+          {/* FOOTER */}
+          <footer className="mt-10 border-t border-slate-800 pt-4 flex items-center justify-between text-slate-300">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-900 flex items-center justify-center font-bold">F</div>
+              <div className="text-slate-200 font-medium">Flyps</div>
+            </div>
+            <div className="text-right">
+              <div className="text-slate-100 font-semibold">Marek Grabowski</div>
+              <div>marek@grvbowski.com</div>
+              <div>+48 690 689 886</div>
+            </div>
+          </footer>
+        </div>
+      );
     }
 
-    // cleanup
-    for (const d of $$(".g", glitch)){
-      d.style.clipPath = "none";
-      d.style.zIndex = 2;
-      d.style.opacity = "";
-      d.style.transform = "";
-    }
-    glitch.classList.remove("intro");
-  }
-  introGlitch();
-  setTimeout(() => glitch.classList.remove("intro"),
-    parseInt(getComputedStyle(root).getPropertyValue('--intro-ms')) || 1400);
-
-  // --- HALO: podąża za kursorem, zmienia rozmiar ---
-  let raf = null;
-  let overBase = false;
-
-  // Przybliżenie: jeśli kursor jest nad <img> bazy, traktuj jako „nad białym glifem”
-  // (dokładniejsze rozpoznanie wymagałoby inline SVG).
-  base.addEventListener('mouseenter', () => overBase = true);
-  base.addEventListener('mouseleave', () => overBase = false);
-
-  function renderHalo(e, boost=false){
-    const rect = wrap.getBoundingClientRect();
-    const dx = e.clientX - rect.left;
-    const dy = e.clientY - rect.top;
-
-    // rozmiar – większy nad bazą
-    const size = getComputedStyle(root).getPropertyValue(overBase ? '--halo-size-large' : '--halo-size-small').trim();
-
-    // jasność – krótkie podbicie na wejściu
-    const bright = parseFloat(getComputedStyle(root).getPropertyValue('--halo-bright')) || 1.0;
-    const spark  = parseFloat(getComputedStyle(root).getPropertyValue('--halo-spark'))  || 1.25;
-    const k = boost ? bright * spark : bright;
-
-    // gradient: centrum białe -> złoto -> pomarańcz -> przezroczyste
-    halo.style.background = `radial-gradient(circle ${size} at ${dx}px ${dy}px,
-        rgba(255,255,255,${0.95 * k}) 0%,
-        rgba(255,214,120,${0.78 * k}) 20%,
-        rgba(255,170,60, ${0.55 * k}) 40%,
-        rgba(255,120,30, ${0.30 * k}) 58%,
-        rgba(255,120,30, 0) 72%)`;
-
-    halo.style.opacity = 1;
-  }
-
-  function onEnter(e){
-    renderHalo(e, true); // szybki „flash”
-    window.addEventListener('mousemove', onMove);
-  }
-  function onMove(e){
-    if (raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(() => renderHalo(e, false));
-  }
-  function onLeave(){
-    window.removeEventListener('mousemove', onMove);
-    halo.style.opacity = 0;
-  }
-
-  wrap.addEventListener('mouseenter', onEnter);
-  wrap.addEventListener('mouseleave', onLeave);
-})();
-</script>
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 </html>

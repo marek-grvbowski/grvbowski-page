@@ -1,2 +1,2 @@
 User-agent: *
-Disallow: /download-resume.html
+Disallow: /frugalgpt/
