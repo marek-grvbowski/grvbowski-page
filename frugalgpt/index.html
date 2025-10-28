@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FrugalGPT Cost Playground — Marek Grabowski</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>html,body{background:#0a0f1a}</style>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="min-h-screen text-slate-50 bg-slate-950">
+  <div class="max-w-7xl mx-auto p-6 space-y-8">
+    <header class="flex items-center justify-between">
+      <h1 class="text-3xl font-semibold">FrugalGPT Cost Playground</h1>
+      <div class="text-sm text-slate-200">Figures update as you type • /1k token pricing</div>
+    </header>
+
+    <div>
+      <div class="inline-flex rounded-xl border border-slate-700 overflow-hidden">
+        <button id="tab-about" class="px-4 py-2 text-sm bg-slate-800 text-white">About</button>
+        <button id="tab-calc"  class="px-4 py-2 text-sm bg-slate-900/60 text-slate-300 hover:bg-slate-800/60">Calculator</button>
+        <button id="tab-co2"   class="px-4 py-2 text-sm bg-slate-900/60 text-slate-300 hover:bg-slate-800/60">CO₂</button>
+        <button id="tab-models"class="px-4 py-2 text-sm bg-slate-900/60 text-slate-300 hover:bg-slate-800/60">Models</button>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <section id="panel-about" class="p-5 bg-slate-900/90 rounded-2xl border border-slate-700">
+      <h2 class="text-xl font-semibold mb-3">About this sandbox</h2>
+      <div class="grid md:grid-cols-2 gap-6 text-slate-100 text-sm">
+        <div class="space-y-2">
+          <h3 class="text-base font-semibold">What this tool shows</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><b>Classic (Baseline)</b>: all traffic sent to the Top/High model.</li>
+            <li><b>Proposed (Cascade)</b>: traffic split across Small → Mid → Top according to your routing %.</li>
+            <li><b>Pricing model</b>: cost = (tokens/1k) × price_in/out, summed per tier, × queries × 12 (year).</li>
+            <li><b>Breakdown charts</b> make the spend structure visible (Small/Mid/Top shares).</li>
+          </ul>
+          <h3 class="text-base font-semibold mt-4">How to enter data</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><i>Monthly queries</i> = how many prompts you expect per month.</li>
+            <li><i>Input size (tokens/query)</i> ≈ prompt length in tokens (not characters).</li>
+            <li><i>Output tokens/response</i> ≈ typical answer length in tokens.</li>
+            <li><i>Routing</i> must sum to 1.00 (e.g., 0.7 + 0.2 + 0.1).</li>
+          </ul>
+        </div>
+        <div class="space-y-2">
+          <h3 class="text-base font-semibold">Assumptions & caveats</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Prices are <b>per 1,000 tokens</b>. We keep an indicative catalog; verify with your provider & region.</li>
+            <li>Quality/latency/guardrails are not modeled here; this is a <i>cost view</i>.</li>
+            <li>Routing is an input; in real life it’s learned (router) and drifts over time.</li>
+            <li>Compliance, PHI residency, and caching/RAG can further change costs.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="text-xs mt-4 text-slate-300">Note: CO₂ accounting is available in the CO₂ tab only. Calculator focuses purely on cost.</p>
+    </section>
+
+    <!-- CALC -->
+    <section id="panel-calc" class="hidden">
+      <div class="grid md:grid-cols-12 gap-6">
+        <!-- Inputs -->
+        <div class="md:col-span-5 p-5 bg-slate-900/90 rounded-2xl border border-slate-700 h-full">
+          <h2 class="text-xl font-semibold mb-4">Inputs</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="text-slate-100 text-sm">Monthly queries</label>
+              <input id="inp-monthly" type="number" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2" value="500000" />
+              <div class="text-slate-300 text-xs mt-1">Estimated prompts per month.</div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-slate-100 text-sm">Input size (tokens/query)</label>
+                <input id="inp-prompt" type="number" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2" value="300" />
+              </div>
+              <div>
+                <label class="text-slate-100 text-sm">Output tokens/response</label>
+                <input id="inp-completion" type="number" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2" value="300" />
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="text-slate-100 text-sm">Small routing (0–1)</label>
+                <input id="inp-route-small" type="number" step="0.01" class="w-full bg-yellow-900/30 text-slate-100 border border-yellow-800 rounded px-3 py-2" value="0.7" />
+              </div>
+              <div>
+                <label class="text-slate-100 text-sm">Mid routing (0–1)</label>
+                <input id="inp-route-mid" type="number" step="0.01" class="w-full bg-yellow-900/30 text-slate-100 border border-yellow-800 rounded px-3 py-2" value="0.2" />
+              </div>
+              <div>
+                <label class="text-slate-100 text-sm">Top routing (0–1)</label>
+                <input id="inp-route-top" type="number" step="0.01" class="w-full bg-yellow-900/30 text-slate-100 border border-yellow-800 rounded px-3 py-2" value="0.1" />
+              </div>
+            </div>
+            <div id="routing-warn" class="text-xs text-green-300">Routing sum: 1.00</div>
+
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="text-slate-200 text-sm">Small model</label>
+                <select id="sel-small" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"></select>
+                <div id="price-small" class="text-xs text-slate-300 mt-1"></div>
+              </div>
+              <div>
+                <label class="text-slate-200 text-sm">Mid model</label>
+                <select id="sel-mid" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"></select>
+                <div id="price-mid" class="text-xs text-slate-300 mt-1"></div>
+              </div>
+              <div>
+                <label class="text-slate-200 text-sm">Top model</label>
+                <select id="sel-top" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2"></select>
+                <div id="price-top" class="text-xs text-slate-300 mt-1"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="md:col-span-7 p-5 bg-slate-900/90 rounded-2xl border border-slate-700 h-full">
+          <h2 class="text-xl font-semibold mb-4">Results</h2>
+          <div class="grid lg:grid-cols-3 gap-4">
+            <div class="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+              <div class="text-base uppercase font-semibold text-slate-100">Baseline (Top only) / year</div>
+              <div id="val-baseline" class="text-3xl font-bold mt-1 text-slate-50">$0</div>
+              <div class="text-xs mt-1 text-slate-200">Formula: all traffic → Top model</div>
+            </div>
+            <div class="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+              <div class="text-base uppercase font-semibold text-slate-100">Cascade / year</div>
+              <div id="val-cascade" class="text-3xl font-bold mt-1 text-slate-50">$0</div>
+              <div class="text-xs mt-1 text-slate-200">Weighted by routing % × model prices</div>
+            </div>
+            <div class="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+              <div class="text-base uppercase font-semibold text-slate-100">You save / year</div>
+              <div id="val-saved" class="text-3xl font-bold mt-1 text-green-400">$0</div>
+              <div id="val-saved-pct" class="text-xs mt-1 text-green-300">0%</div>
+            </div>
+          </div>
+
+          <!-- Breakdown toggle -->
+          <div class="flex items-center justify-between mt-4">
+            <div class="text-sm text-slate-100">Breakdown (how values are computed)</div>
+            <button id="btn-breakdown" class="px-3 py-1 rounded border border-slate-600 bg-slate-800 text-slate-100 text-sm">Show</button>
+          </div>
+          <div id="box-breakdown" class="hidden grid md:grid-cols-2 gap-4 mt-3 text-sm text-slate-100">
+            <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700">
+              <div class="font-semibold mb-2">Inputs → Tokens</div>
+              <div>Tokens per query = <span id="bk-ppq" class="font-mono">0</span></div>
+              <div>Monthly tokens = <span id="bk-monthly-tokens" class="font-mono">0</span></div>
+            </div>
+            <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700">
+              <div class="font-semibold mb-2">Effective prices (/1k tokens)</div>
+              <div id="bk-prices" class="font-mono"></div>
+            </div>
+            <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700 md:col-span-2">
+              <div class="font-semibold mb-2">Cost formulas</div>
+              <div>Baseline per query = (prompt/1k×Top_in) + (completion/1k×Top_out)</div>
+              <div>Cascade per query = Σ routingTier × [(prompt/1k×Tier_in) + (completion/1k×Tier_out)]</div>
+              <div class="mt-1">Yearly = Monthly queries × cost per query × 12</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="bg-slate-900/80 rounded-xl p-3 mt-6">
+            <canvas id="chart-cost" height="280"></canvas>
+          </div>
+          <div class="bg-slate-900/80 rounded-xl p-3 mt-6">
+            <canvas id="chart-stacked" height="280"></canvas>
+          </div>
+          <div class="bg-slate-900/80 rounded-xl p-3 mt-6">
+            <canvas id="chart-pie" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CO2 -->
+    <section id="panel-co2" class="hidden p-5 bg-slate-900/90 rounded-2xl border border-slate-700">
+      <h2 class="text-xl font-semibold mb-4">CO₂ assumptions (indicative)</h2>
+      <div class="grid md:grid-cols-4 gap-4">
+        <div>
+          <div class="text-slate-100 text-sm">kWh / 1M tokens (Small)</div>
+          <input id="co2-small" type="number" step="0.1" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2" value="10" />
+        </div>
+        <div>
+          <div class="text-slate-100 text-sm">kWh / 1M tokens (Mid)</div>
+          <input id="co2-mid" type="number" step="0.1" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2" value="18" />
+        </div>
+        <div>
+          <div class="text-slate-100 text-sm">kWh / 1M tokens (Top)</div>
+          <input id="co2-top" type="number" step="0.1" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2" value="35" />
+        </div>
+        <div>
+          <div class="text-slate-100 text-sm">Grid CO₂ (kg/kWh)</div>
+          <input id="co2-grid" type="number" step="0.01" class="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded px-3 py-2" value="0.6" />
+        </div>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-4 mt-6">
+        <div class="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+          <div class="text-base uppercase font-semibold text-slate-100">Baseline CO₂ / year</div>
+          <div id="co2-baseline" class="text-3xl font-bold mt-1 text-slate-50">0 kg</div>
+          <div class="text-xs mt-1 text-slate-200">Assumes 100% Top model</div>
+        </div>
+        <div class="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+          <div class="text-base uppercase font-semibold text-slate-100">Cascade CO₂ / year</div>
+          <div id="co2-cascade" class="text-3xl font-bold mt-1 text-slate-50">0 kg</div>
+          <div class="text-xs mt-1 text-slate-200">Weighted by routing × kWh factors</div>
+        </div>
+        <div class="p-5 bg-slate-900/85 rounded-xl border border-slate-700">
+          <div class="text-base uppercase font-semibold text-slate-100">CO₂ saved / year</div>
+          <div id="co2-saved" class="text-3xl font-bold mt-1 text-green-400">0 kg</div>
+          <div class="text-xs mt-1 text-green-300">= Baseline − Cascade</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODELS -->
+    <section id="panel-models" class="hidden p-5 bg-slate-900/90 rounded-2xl border border-slate-700">
+      <h2 class="text-xl font-semibold mb-4">Models by tier & pricing (editable)</h2>
+      <div id="models-grid" class="grid lg:grid-cols-3 gap-6"></div>
+      <div class="flex gap-3 mt-4">
+        <button id="btn-reset" class="px-3 py-2 rounded border border-slate-600 bg-slate-800 text-slate-100 text-sm">Reset prices to catalog</button>
+        <button id="btn-clear" class="px-3 py-2 rounded border border-slate-600 bg-slate-800 text-slate-100 text-sm">Clear & reload</button>
+      </div>
+      <p class="text-xs mt-4 text-slate-300">Edits here are applied everywhere (Calculator & charts). Use this to match your provider/region.</p>
+    </section>
+
+    <footer class="mt-10 border-t border-slate-800 pt-4 flex items-center justify-between text-slate-300">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-full bg-slate-200 text-slate-900 flex items-center justify-center font-bold">F</div>
+        <div class="text-slate-200 font-medium">Flyps</div>
+      </div>
+      <div class="text-right">
+        <div class="text-slate-100 font-semibold">Marek Grabowski</div>
+        <div>marek@grvbowski.com</div>
+        <div>+48 690 689 886</div>
+      </div>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
