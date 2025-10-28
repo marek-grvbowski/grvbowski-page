@@ -9,92 +9,122 @@
       margin: 0;
       height: 100%;
       overflow: hidden;
-      font-family: "Inter", system-ui, sans-serif;
-      color: white;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #000;
+      color: #fff;
     }
+
     #vanta-bg {
-      width: 100%;
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 70%;
       height: 100%;
-      position: fixed;
-      top: 0; left: 0;
       z-index: 0;
     }
+
+    .left-side {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30%;
+      height: 100%;
+      background-color: #000;
+      z-index: 1;
+    }
+
     .content {
       position: relative;
-      z-index: 1;
+      z-index: 2;
+      height: 100%;
+      width: 70%;
+      margin-left: 30%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100%;
       text-align: center;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0, 0, 0, 0.55);
       backdrop-filter: blur(4px);
     }
+
     .logo {
-      width: 120px;
+      width: 110px;
       margin-bottom: 1.5rem;
-      filter: brightness(1.1);
+      filter: brightness(1.05);
     }
+
     h1 {
       font-size: 3rem;
-      color: #d0fff0;
-      letter-spacing: 0.05em;
-      text-shadow: 0 0 12px rgba(0,255,180,0.2);
-      margin: 0.5rem 0;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #f5f5f5;
+      text-shadow: 0 0 18px rgba(255, 255, 255, 0.1);
+      margin: 0.3rem 0;
     }
+
     h2 {
       font-weight: 400;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       opacity: 0.8;
       margin-bottom: 2rem;
+      color: #ccc;
     }
+
     .btn {
-      background: #00ffcc;
-      color: #0b1220;
-      padding: 0.8rem 2rem;
+      background: #fff;
+      color: #000;
+      padding: 0.9rem 2rem;
       border-radius: 6px;
       font-weight: 600;
       text-decoration: none;
-      box-shadow: 0 4px 16px rgba(0,255,180,0.4);
-      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      font-size: 1rem;
+      transition: all 0.25s ease;
     }
+
     .btn:hover {
+      background: #e5e5e5;
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,255,180,0.6);
     }
+
     footer {
       position: absolute;
       bottom: 30px;
-      font-size: 0.9rem;
-      opacity: 0.5;
+      right: 60px;
+      font-size: 0.85rem;
+      opacity: 0.45;
+      letter-spacing: 0.04em;
     }
   </style>
 </head>
 <body>
   <div id="vanta-bg"></div>
+  <div class="left-side"></div>
+
   <div class="content">
-    <img class="logo" src="https://itcorner.org.pl/wp-content/uploads/2024/03/Logo-1.png" alt="Flyps" />
+    <img class="logo" src="https://itcorner.org.pl/wp-content/uploads/2024/03/Logo-1.png" alt="Flyps logo" />
     <h1>FrugalGPT</h1>
-    <h2>Smart Cost Efficiency for LLM Platforms</h2>
+    <h2>Cost-effective intelligence for LLM Platforms</h2>
     <a href="https://grvbowski.com/frugalgpt/" target="_blank" class="btn">Calculator</a>
     <footer>Flyps © 2025 · Marek Grabowski</footer>
   </div>
 
-  <!-- Vanta.js / Three.js -->
+  <!-- Vanta.js -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.151.3/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.birds.min.js"></script>
   <script>
     VANTA.BIRDS({
       el: "#vanta-bg",
-      backgroundAlpha: 0.0,
-      color1: 0x00ffcc,
-      color2: 0x007766,
+      backgroundColor: 0x000000,
+      color1: 0xffffff,
+      color2: 0x666666,
       birdSize: 1.2,
-      separation: 40.0,
       quantity: 2.0,
-      backgroundColor: 0x0b0f1a,
-      speedLimit: 3.0
+      backgroundAlpha: 1.0,
+      wingSpan: 20.0,
+      cohesion: 25.0,
+      separation: 35.0,
+      speedLimit: 2.5
     })
   </script>
 </body>
