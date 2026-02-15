@@ -21,6 +21,15 @@
     }
     return h >>> 0;
   }
+  function detectBrowserName(){
+    const ua = navigator.userAgent || '';
+    if (/Edg\//.test(ua)) return 'edge';
+    if (/OPR\//.test(ua)) return 'opera';
+    if (/Firefox\//.test(ua)) return 'firefox';
+    if (/Chrome\//.test(ua) && !/Edg\//.test(ua) && !/OPR\//.test(ua)) return 'chrome';
+    if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 'safari';
+    return 'browser';
+  }
 
   // ---------- elements ----------
   const app = document.getElementById('app') || document.querySelector('.stage') || document.body;
@@ -48,6 +57,15 @@
   const panelDotMinimize = document.getElementById('panelDotMinimize');
   const panelDotFullscreen = document.getElementById('panelDotFullscreen');
   const mobileNavToggle = document.getElementById('mobileNavToggle');
+  const mobileNavCountdown = document.getElementById('mobileNavCountdown');
+  const mobileNavCountdownFill = document.getElementById('mobileNavCountdownFill');
+  const siteNav = document.getElementById('siteNav');
+  const desktopNavToggle = document.getElementById('desktopNavToggle');
+  const desktopNavCountdown = document.getElementById('desktopNavCountdown');
+  const desktopNavCountdownFill = document.getElementById('desktopNavCountdownFill');
+  const desktopCmdInput = document.getElementById('desktopCmdInput');
+  const desktopCommandWrap = app.querySelector('.desktop-command-wrap');
+  const desktopCmdHelp = document.getElementById('desktopCmdHelp');
   const views = Array.from(document.querySelectorAll('.view'));
   const glitchLogo = document.getElementById('glitchLogo');
   const spotlight = document.getElementById('spotlight');
@@ -57,7 +75,23 @@
   const termInput = document.getElementById('termInput');
   const termPrompt = document.getElementById('termPrompt');
   const infoTerminalRoots = Array.from(document.querySelectorAll('[data-info-terminal]'));
-  const TERM_PROMPT = '/network/browser/grvbowski.com ~ %';
+  const desktopCommandPrompt = document.getElementById('desktopCommandPrompt');
+  const BROWSER_NAME = detectBrowserName();
+  const TERM_PROMPT_DESKTOP = `/${BROWSER_NAME}/website/grvbowski.com ~ %`;
+  const TERM_PROMPT_MOBILE = `~/${BROWSER_NAME}/website/grvbowski.com ~ %`;
+  const DESKTOP_PLACEHOLDER_DEFAULT = '/about /links /calendar /contact';
+
+  const SECTION_ROUTE_COMMANDS = {
+    about: '/about',
+    links: '/links',
+    calendar: '/calendar',
+    contact: '/contact',
+    'contact_me': '/contact',
+    home: '/',
+    start: '/',
+    close: '/',
+    exit: '/'
+  };
 
   // ---------- routes ----------
   const ROUTES = new Set(['/', '/about', '/links', '/calendar', '/contact']);
@@ -79,17 +113,108 @@
   function isMobileNavMode(){
     return mobileNavMQ.matches;
   }
+  function currentPrompt(){
+    return isMobileNavMode() ? TERM_PROMPT_MOBILE : TERM_PROMPT_DESKTOP;
+  }
+  let mobileNavCloseTimer = null;
+  let mobileNavCountdownRaf = null;
+  let mobileNavGlitchTimer = null;
+  let mobileNavCountdownStartedAt = 0;
+  let mobileNavCountdownDuration = 0;
+  let mobileNavClosingTimer = null;
+
+  function clearMobileAutoClose(){
+    if (mobileNavCloseTimer) clearTimeout(mobileNavCloseTimer);
+    if (mobileNavCountdownRaf) cancelAnimationFrame(mobileNavCountdownRaf);
+    if (mobileNavGlitchTimer) clearInterval(mobileNavGlitchTimer);
+    mobileNavCloseTimer = null;
+    mobileNavCountdownRaf = null;
+    mobileNavGlitchTimer = null;
+    if (mobileNavCountdown){
+      mobileNavCountdown.classList.add('hidden');
+      mobileNavCountdown.classList.remove('is-glitch');
+      mobileNavCountdown.style.removeProperty('--timer-hue');
+    }
+    if (mobileNavCountdownFill){
+      mobileNavCountdownFill.style.setProperty('--timer-angle', '0deg');
+    }
+  }
+  function startMobileAutoClose(){
+    if (!isMobileNavMode()) return;
+    clearMobileAutoClose();
+    if (!mobileNavCountdownFill || !mobileNavCountdown) return;
+
+    mobileNavCountdownDuration = 20000 + Math.floor(Math.random() * 10001);
+    mobileNavCountdownStartedAt = performance.now();
+    mobileNavCountdown.classList.remove('hidden');
+
+    const tick = (now) => {
+      const t = clamp((now - mobileNavCountdownStartedAt) / mobileNavCountdownDuration, 0, 1);
+      mobileNavCountdownFill.style.setProperty('--timer-angle', `${(t * 360).toFixed(1)}deg`);
+      if (t >= 1){
+        mobileNavCountdownRaf = null;
+        setMobileNavExpanded(false);
+        return;
+      }
+      mobileNavCountdownRaf = requestAnimationFrame(tick);
+    };
+    mobileNavCountdownRaf = requestAnimationFrame(tick);
+
+    mobileNavCloseTimer = setTimeout(() => setMobileNavExpanded(false), mobileNavCountdownDuration);
+    mobileNavGlitchTimer = setInterval(() => {
+      if (!mobileNavCountdown) return;
+      mobileNavCountdown.style.setProperty('--timer-hue', `${Math.floor(Math.random() * 300) - 150}deg`);
+      mobileNavCountdown.classList.add('is-glitch');
+      setTimeout(() => mobileNavCountdown.classList.remove('is-glitch'), 180);
+    }, 1700 + Math.floor(Math.random() * 2300));
+  }
   function setMobileNavExpanded(expanded){
     if (!mobileNavToggle) return;
-    app.classList.toggle('mobile-nav-open', expanded);
-    app.classList.toggle('mobile-nav-trigger-hidden', expanded);
+    if (!isMobileNavMode()){
+      clearMobileAutoClose();
+      app.classList.remove('mobile-nav-open', 'mobile-nav-closing');
+      mobileNavToggle.setAttribute('aria-expanded', 'false');
+      mobileNavToggle.setAttribute('aria-label', 'open menu');
+      return;
+    }
+    if (mobileNavClosingTimer){
+      clearTimeout(mobileNavClosingTimer);
+      mobileNavClosingTimer = null;
+    }
+    const wasOpen = app.classList.contains('mobile-nav-open');
+    if (expanded){
+      app.classList.remove('mobile-nav-closing');
+      app.classList.add('mobile-nav-open');
+      mobileNavToggle.setAttribute('aria-label', 'collapse menu');
+      startMobileAutoClose();
+    } else {
+      app.classList.remove('mobile-nav-open');
+      if (wasOpen) app.classList.add('mobile-nav-closing');
+      else app.classList.remove('mobile-nav-closing');
+      mobileNavToggle.setAttribute('aria-label', 'open menu');
+      clearMobileAutoClose();
+      if (wasOpen){
+        mobileNavClosingTimer = setTimeout(() => {
+          app.classList.remove('mobile-nav-closing');
+          mobileNavClosingTimer = null;
+        }, 280);
+      }
+    }
     mobileNavToggle.setAttribute('aria-expanded', String(expanded));
   }
-  function openMobileNavOnce(){
+  function toggleMobileNav(){
     if (!mobileNavToggle || !isMobileNavMode()) return;
-    if (app.classList.contains('mobile-nav-open')) return;
-    setMobileNavExpanded(true);
+    setMobileNavExpanded(!app.classList.contains('mobile-nav-open'));
   }
+  mobileNavMQ.addEventListener('change', (e) => {
+    if (!e.matches){
+      clearMobileAutoClose();
+      app.classList.remove('mobile-nav-open', 'mobile-nav-closing');
+    }
+    if (termPrompt) termPrompt.textContent = currentPrompt();
+    infoTerminals.forEach(session => { session.prompt.textContent = currentPrompt(); });
+    if (desktopCommandPrompt) desktopCommandPrompt.textContent = TERM_PROMPT_DESKTOP;
+  });
 
   let panelFullscreen = false;
   let panelMinimized = false;
@@ -111,6 +236,136 @@
     if (next) setPanelFullscreen(false);
     setPanelMinimized(next);
     impulse = clamp(impulse + 0.65, 0, 1.8);
+  }
+
+  let desktopNavCloseTimer = null;
+  let desktopNavCountdownRaf = null;
+  let desktopNavGlitchTimer = null;
+  let desktopNavStartedAt = 0;
+  let desktopNavDuration = 0;
+  function clearDesktopAutoClose(){
+    if (desktopNavCloseTimer) clearTimeout(desktopNavCloseTimer);
+    if (desktopNavCountdownRaf) cancelAnimationFrame(desktopNavCountdownRaf);
+    if (desktopNavGlitchTimer) clearInterval(desktopNavGlitchTimer);
+    desktopNavCloseTimer = null;
+    desktopNavCountdownRaf = null;
+    desktopNavGlitchTimer = null;
+    if (desktopNavCountdown){
+      desktopNavCountdown.classList.add('hidden');
+      desktopNavCountdown.classList.remove('is-glitch');
+      desktopNavCountdown.style.removeProperty('--desk-timer-hue');
+    }
+    if (desktopNavCountdownFill){
+      desktopNavCountdownFill.style.setProperty('--desk-timer-angle', '0deg');
+    }
+  }
+  function startDesktopAutoClose(){
+    clearDesktopAutoClose();
+    if (!desktopNavCountdown || !desktopNavCountdownFill) return;
+    desktopNavDuration = 22000 + Math.floor(Math.random() * 9001);
+    desktopNavStartedAt = performance.now();
+    desktopNavCountdown.classList.remove('hidden');
+
+    const tick = (now) => {
+      const t = clamp((now - desktopNavStartedAt) / desktopNavDuration, 0, 1);
+      desktopNavCountdownFill.style.setProperty('--desk-timer-angle', `${(t * 360).toFixed(1)}deg`);
+      if (t >= 1){
+        desktopNavCountdownRaf = null;
+        setDesktopNavExpanded(false);
+        return;
+      }
+      desktopNavCountdownRaf = requestAnimationFrame(tick);
+    };
+    desktopNavCountdownRaf = requestAnimationFrame(tick);
+    desktopNavCloseTimer = setTimeout(() => setDesktopNavExpanded(false), desktopNavDuration);
+    desktopNavGlitchTimer = setInterval(() => {
+      if (!desktopNavCountdown) return;
+      desktopNavCountdown.style.setProperty('--desk-timer-hue', `${Math.floor(Math.random() * 300) - 150}deg`);
+      desktopNavCountdown.classList.add('is-glitch');
+      setTimeout(() => desktopNavCountdown.classList.remove('is-glitch'), 170);
+    }, 1900 + Math.floor(Math.random() * 2300));
+  }
+
+  function setDesktopNavExpanded(expanded){
+    app.classList.toggle('desktop-nav-open', expanded);
+    if (desktopNavToggle){
+      desktopNavToggle.setAttribute('aria-expanded', String(expanded));
+      desktopNavToggle.textContent = expanded ? '✕' : '⋯';
+      desktopNavToggle.setAttribute('aria-label', expanded ? 'show less' : 'show more');
+    }
+    if (desktopCommandPrompt) desktopCommandPrompt.textContent = TERM_PROMPT_DESKTOP;
+    if (expanded) startDesktopAutoClose();
+    else clearDesktopAutoClose();
+  }
+
+  let desktopInlineTimer = null;
+  function setDesktopStatus(text, mode = 'sys'){
+    if (desktopInlineTimer){
+      clearTimeout(desktopInlineTimer);
+      desktopInlineTimer = null;
+    }
+    if (desktopCmdHelp) desktopCmdHelp.textContent = text || '';
+    if (!desktopCmdInput) return;
+
+    desktopCmdInput.classList.remove('is-error', 'is-info');
+    if (desktopCommandWrap) desktopCommandWrap.classList.remove('is-error', 'is-info');
+    if (!text){
+      desktopCmdInput.placeholder = DESKTOP_PLACEHOLDER_DEFAULT;
+      return;
+    }
+
+    desktopCmdInput.placeholder = text;
+    if (mode === 'error'){
+      desktopCmdInput.classList.add('is-error');
+      if (desktopCommandWrap) desktopCommandWrap.classList.add('is-error');
+    } else if (mode === 'info'){
+      desktopCmdInput.classList.add('is-info');
+      if (desktopCommandWrap) desktopCommandWrap.classList.add('is-info');
+    }
+
+    desktopInlineTimer = setTimeout(() => {
+      if (desktopCmdInput){
+        desktopCmdInput.classList.remove('is-error', 'is-info');
+        desktopCmdInput.placeholder = DESKTOP_PLACEHOLDER_DEFAULT;
+      }
+      if (desktopCommandWrap) desktopCommandWrap.classList.remove('is-error', 'is-info');
+      if (desktopCmdHelp) desktopCmdHelp.textContent = '';
+      desktopInlineTimer = null;
+    }, 1800);
+  }
+  function handleDesktopCommand(raw){
+    const value = (raw || '').trim();
+    if (!value) return;
+    const cmd = value.startsWith('/') ? value.slice(1).trim().toLowerCase() : '';
+    if (!cmd){
+      setDesktopStatus(`Error: command not found: ${value}`, 'error');
+      return;
+    }
+    if (cmd === 'help'){
+      setDesktopStatus('/about /links /calendar /contact /home /close /toggle', 'info');
+      return;
+    }
+    if (cmd === 'toggle'){
+      setDesktopNavExpanded(!app.classList.contains('desktop-nav-open'));
+      setDesktopStatus(app.classList.contains('desktop-nav-open')
+        ? 'nav expanded'
+        : 'nav collapsed', 'info');
+      return;
+    }
+    const route = SECTION_ROUTE_COMMANDS[cmd];
+    if (!route){
+      setDesktopStatus(`Error: command not found: ${value}`, 'error');
+      return;
+    }
+    go(route);
+    setDesktopStatus('');
+  }
+  function focusDesktopCommandInput(){
+    if (!desktopCmdInput || isMobileNavMode()) return;
+    requestAnimationFrame(() => {
+      if (isMobileNavMode()) return;
+      desktopCmdInput.focus({ preventScroll: true });
+    });
   }
 
   // ---------- view typing ----------
@@ -216,12 +471,30 @@
   function infoScroll(session){
     session.output.scrollTop = session.output.scrollHeight;
   }
+  function appendPromptEcho(container, promptText, value){
+    if (!container) return;
+    const line = document.createElement('div');
+    line.className = 'term-line';
+    const promptSpan = document.createElement('span');
+    promptSpan.className = 'term-prompt-segment';
+    promptSpan.textContent = `${promptText} `;
+    const inputSpan = document.createElement('span');
+    inputSpan.className = 'term-input-segment';
+    inputSpan.textContent = value;
+    line.append(promptSpan, inputSpan);
+    container.appendChild(line);
+  }
   function infoLine(session, text, cls = 'sys'){
     const line = document.createElement('div');
     line.className = `term-line ${cls}`;
     line.textContent = text;
     session.output.appendChild(line);
     infoScroll(session);
+  }
+  function infoError(session, message){
+    infoLine(session, 'Error', 'warn');
+    infoLine(session, message, 'sys');
+    infoLine(session, '    get some /help', 'sys');
   }
   function typeInfoLine(session, token, text, cls = 'sys', done){
     const line = document.createElement('div');
@@ -264,15 +537,23 @@
     const cfg = INFO_TERMINAL_CONFIG[key];
     const session = infoTerminals.get(key);
     if (!cfg || !session) return;
-    const names = Object.keys(cfg.commands).map(n => `/${n}`).join(' ');
-    infoLine(session, `commands: ${names} /help /clear`, 'sys');
+    const sectionNames = Object.keys(cfg.commands).map(n => `/${n}`).join(' ');
+    infoLine(session, `section: ${sectionNames}`, 'sys');
+    infoLine(session, 'jump: /about /links /calendar /contact', 'sys');
+    infoLine(session, 'tools: /help /clear /close', 'sys');
+  }
+  function showInfoNext(session, key, activeCmd){
+    const cfg = INFO_TERMINAL_CONFIG[key];
+    const hasOther = cfg && Object.keys(cfg.commands).some(n => n !== activeCmd);
+    if (hasOther) infoLine(session, 'see another /[section]', 'sys');
+    infoLine(session, '    or /help /clear /close', 'sys');
   }
   function initInfoTerminal(key, force = false){
     const session = infoTerminals.get(key);
     const cfg = INFO_TERMINAL_CONFIG[key];
     if (!session || !cfg) return;
     if (!force && session.booted){
-      session.prompt.textContent = TERM_PROMPT;
+      session.prompt.textContent = currentPrompt();
       session.input.focus();
       return;
     }
@@ -281,16 +562,16 @@
     clearInfoTimers(session);
     session.output.innerHTML = '';
     session.input.value = '';
-    session.prompt.textContent = TERM_PROMPT;
+    session.prompt.textContent = currentPrompt();
+    const sectionOptions = Object.keys(cfg.commands).map(cmd => `/${cmd}`).join(' ');
 
     const intro = [
       { text: '$ boot info terminal', cls: 'sys', pause: 65 },
-      ...cfg.intro.map(text => ({ text, cls: 'sys', pause: 65 }))
+      ...cfg.intro.map(text => ({ text, cls: 'sys', pause: 65 })),
+      { text: `options: ${sectionOptions}`, cls: 'sys', pause: 55 },
+      { text: 'more: /help', cls: 'sys', pause: 55 }
     ];
-    typeInfoSequence(key, intro, () => {
-      showInfoHelp(key);
-      session.input.focus();
-    });
+    typeInfoSequence(key, intro, () => session.input.focus());
   }
   function processInfoInput(key, raw){
     const session = infoTerminals.get(key);
@@ -298,12 +579,17 @@
     if (!session || !cfg) return;
     const value = (raw || '').trim();
     if (!value) return;
-    infoLine(session, `cmd > ${value}`, 'input');
+    const promptText = session.prompt.textContent || currentPrompt();
+    appendPromptEcho(session.output, promptText, value);
+    infoScroll(session);
 
     const cmd = value.startsWith('/') ? value.slice(1).trim().toLowerCase() : '';
     if (!cmd){
-      infoLine(session, `Error: command not found: ${value}`, 'warn');
-      infoLine(session, 'get some /help', 'sys');
+      infoError(session, `command not found: ${value}`);
+      return;
+    }
+    if (cmd === 'close'){
+      go('/');
       return;
     }
     if (cmd === 'help'){
@@ -314,13 +600,18 @@
       initInfoTerminal(key, true);
       return;
     }
+    const targetRoute = SECTION_ROUTE_COMMANDS[cmd];
+    if (targetRoute){
+      go(targetRoute);
+      return;
+    }
     const out = cfg.commands[cmd];
     if (!out){
-      infoLine(session, `Error: command not found: ${value}`, 'warn');
-      infoLine(session, 'get some /help', 'sys');
+      infoError(session, `command not found: ${value}`);
       return;
     }
     out.forEach(line => infoLine(session, line, 'ok'));
+    showInfoNext(session, key, cmd);
   }
   infoTerminals.forEach((session, key) => {
     session.input.addEventListener('keydown', (e) => {
@@ -396,17 +687,18 @@
   }
   function setContactPrompt(){
     if (!termPrompt || !termInput) return;
-    termPrompt.textContent = TERM_PROMPT;
+    termPrompt.textContent = currentPrompt();
     const key = contactState.order[contactState.idx];
     if (key){
       termInput.placeholder = key === 'message' ? 'write message' : `enter ${key}`;
     } else {
-      termInput.placeholder = '/submit /show /edit <field> /reset /help';
+      termInput.placeholder = '/submit /show /edit <field> /reset /help /close';
     }
     termInput.focus();
   }
   function validateEmail(email){
-    return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);
+    const value = (email || '').trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
   function firstMissingField(){
     return contactState.order.find(k => !contactState.values[k]);
@@ -420,7 +712,7 @@
   function openEditField(key){
     const idx = contactState.order.indexOf(key);
     if (idx === -1){
-      termLine("Error: unknown field. use: email, subject, message", 'warn');
+      termError('unknown field. use: email, subject, message');
       return;
     }
     contactState.idx = idx;
@@ -428,21 +720,35 @@
     setContactPrompt();
   }
   function showContactHelp(){
-    termLine('commands: /show /submit /reset /edit email|subject|message /help', 'sys');
+    termLine('contact: /show /submit /reset /edit email|subject|message', 'sys');
+    termLine('jump: /about /links /calendar /contact', 'sys');
+    termLine('tools: /help /close', 'sys');
   }
-  function commandNotFound(raw){
-    termLine(`Error: command not found: ${raw}`, 'warn');
-    termLine('get some /help', 'sys');
+  function termError(message, withHelp = true){
+    termLine('Error', 'warn');
+    termLine(message, 'sys');
+    if (withHelp) termLine('    get some /help', 'sys');
+  }
+  function showContactNext(){
+    termLine('all captured. whats next?', 'sys');
+    termLine('/submit to finish', 'sys');
+    termLine('or /show /edit <field> /reset /close', 'sys');
   }
   function processContactInput(raw){
     const value = (raw || '').trim();
     if (!value) return;
-    const activePrompt = termPrompt ? termPrompt.textContent : 'cmd >';
-    termLine(`${activePrompt} ${value}`, 'input');
+    const activePrompt = termPrompt ? termPrompt.textContent : currentPrompt();
+    appendPromptEcho(termOutput, activePrompt, value);
+    termScroll();
 
     const lowered = value.toLowerCase();
     if (value.startsWith('/')){
       const cmd = lowered.slice(1).trim();
+      const targetRoute = SECTION_ROUTE_COMMANDS[cmd];
+      if (targetRoute){
+        go(targetRoute);
+        return;
+      }
       if (cmd === 'help'){
         showContactHelp();
         setContactPrompt();
@@ -462,39 +768,44 @@
         return;
       }
       if (cmd === 'submit'){
-      const missing = firstMissingField();
-      if (missing){
-        termLine(`Error: missing ${missing} — complete all fields first`, 'warn');
-        openEditField(missing);
-        return;
-      }
-      if (!validateEmail(contactState.values.email)){
-        termLine('Error: email format looks invalid — edit email', 'warn');
-        openEditField('email');
-        return;
-      }
+        const missing = firstMissingField();
+        if (missing){
+          termError(`missing ${missing} — complete all fields first`, false);
+          openEditField(missing);
+          return;
+        }
+        if (!validateEmail(contactState.values.email)){
+          termError('email format looks invalid — edit email', false);
+          openEditField('email');
+          return;
+        }
         termLine('payload accepted. i reply when there’s alignment.', 'ok');
         setContactPrompt();
         return;
       }
-      commandNotFound(value);
+      termError(`command not found: ${value}`);
       setContactPrompt();
       return;
     }
 
     const key = contactState.order[contactState.idx];
     if (!key){
-      commandNotFound(value);
+      termError(`command not found: ${value}`);
       setContactPrompt();
       return;
     }
 
+    if (key === 'email' && !validateEmail(value)){
+      termError('email format looks invalid — provide valid email', false);
+      setContactPrompt();
+      return;
+    }
     contactState.values[key] = value;
     termLine(`saved ${key}`, 'ok');
     contactState.idx += 1;
 
     if (contactState.idx >= contactState.order.length){
-      termLine("all fields captured. use /submit or /edit <field>", 'sys');
+      showContactNext();
     }
     setContactPrompt();
   }
@@ -517,7 +828,7 @@
       { text: 'email is the primary channel', cls: 'sys', pause: 70 },
       { text: 'provide: email, subject, message', cls: 'sys', pause: 70 },
       { text: 'enter value + press return', cls: 'sys', pause: 55 },
-      { text: 'need commands? run /help', cls: 'sys', pause: 55 }
+      { text: 'options: /show /submit /reset /edit email|subject|message /help /close', cls: 'sys', pause: 55 }
     ], () => setContactPrompt());
   }
 
@@ -697,6 +1008,7 @@
       setState('idle');
       setPanelMinimized(false);
       setPanelFullscreen(false);
+      focusDesktopCommandInput();
       impulse = clamp(impulse + 1.0, 0, 1.8);
       return;
     }
@@ -757,11 +1069,29 @@
     if (window.matchMedia('(hover: none), (pointer: coarse)').matches) clearHover();
     e.preventDefault();
     go((a.getAttribute('href') || '#/').replace(/^#/, ''));
+    if (isMobileNavMode() && app.classList.contains('mobile-nav-open')){
+      setTimeout(() => setMobileNavExpanded(false), 80);
+    }
   });
 
   if (mobileNavToggle){
-    mobileNavToggle.addEventListener('click', openMobileNavOnce);
+    mobileNavToggle.addEventListener('click', toggleMobileNav);
     setMobileNavExpanded(false);
+  }
+  if (desktopNavToggle){
+    desktopNavToggle.addEventListener('click', () => {
+      setDesktopNavExpanded(!app.classList.contains('desktop-nav-open'));
+    });
+    setDesktopNavExpanded(false);
+  }
+  if (desktopCmdInput){
+    desktopCmdInput.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const raw = desktopCmdInput.value;
+      desktopCmdInput.value = '';
+      handleDesktopCommand(raw);
+    });
   }
 
   if (panelDotClose) panelDotClose.addEventListener('click', () => go('/'));
@@ -1295,6 +1625,7 @@
   (async () => {
     if (introEngine) await introEngine.play();
     app.classList.add('ready');
+    if (readHashRoute() === '/') focusDesktopCommandInput();
   })();
 
   if (mark && logoHoverEngine){

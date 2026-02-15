@@ -4,10 +4,10 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
   <title>grvbowski.</title>
   <meta name="color-scheme" content="dark" />
-  <link rel="stylesheet" href="./styles.css?v=20260214x" />
+  <link rel="stylesheet" href="./styles.css?v=20260215c" />
 </head>
 <body>
   <!-- subtle invert spotlight (moved by app.js) -->
@@ -34,8 +34,20 @@
       </span>
     </button>
 
+    <div class="desktop-command" id="desktopCommand" aria-label="section command line">
+      <label class="desktop-command-wrap" for="desktopCmdInput">
+        <span class="desktop-command-prompt" id="desktopCommandPrompt">/browser/website/grvbowski.com ~ %</span>
+        <input id="desktopCmdInput" class="desktop-command-input" type="text" autocomplete="off" spellcheck="false" placeholder="/about /links /calendar /contact" />
+      </label>
+      <button class="desktop-nav-toggle" id="desktopNavToggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="show more">⋯</button>
+      <div class="desktop-cmd-help" id="desktopCmdHelp"></div>
+    </div>
+
     <!-- Nav -->
-    <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="open menu">⌄</button>
+    <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="toggle menu">
+      <span class="mobile-nav-chevron" aria-hidden="true">⌄</span>
+      <span class="mobile-nav-countdown" id="mobileNavCountdown" aria-hidden="true"><span class="fill" id="mobileNavCountdownFill"></span></span>
+    </button>
 
     <nav class="site-nav" id="siteNav" aria-label="main">
       <div class="nav-item motion" data-type="nav" data-route="/about" data-key="about">
@@ -54,6 +66,7 @@
         <a href="#/contact" data-nav="true">contact me</a>
       </div>
     </nav>
+    <span class="desktop-nav-countdown hidden" id="desktopNavCountdown" aria-hidden="true"><span class="fill" id="desktopNavCountdownFill"></span></span>
 
     <!-- Footer stamp -->
     <div class="meta motion" id="meta" data-type="meta">grvbowski.com · 2026</div>
@@ -85,10 +98,9 @@
           <div class="info-terminal" data-info-terminal="about">
             <div class="term-output"></div>
             <label class="term-input-wrap" for="aboutCmdInput">
-              <span class="term-prompt">cmd &gt;</span>
+              <span class="term-prompt">/browser/website/grvbowski.com ~ %</span>
               <input id="aboutCmdInput" class="term-input" type="text" autocomplete="off" spellcheck="false" />
             </label>
-            <div class="term-help">commands: /scope /model /flow /approach /help /clear</div>
           </div>
         </article>
 
@@ -96,10 +108,9 @@
           <div class="info-terminal" data-info-terminal="links">
             <div class="term-output"></div>
             <label class="term-input-wrap" for="linksCmdInput">
-              <span class="term-prompt">cmd &gt;</span>
+              <span class="term-prompt">/browser/website/grvbowski.com ~ %</span>
               <input id="linksCmdInput" class="term-input" type="text" autocomplete="off" spellcheck="false" />
             </label>
-            <div class="term-help">commands: /work /focus /resources /projects /notes /tools /references /help /clear</div>
           </div>
         </article>
 
@@ -107,10 +118,9 @@
           <div class="info-terminal" data-info-terminal="calendar">
             <div class="term-output"></div>
             <label class="term-input-wrap" for="calendarCmdInput">
-              <span class="term-prompt">cmd &gt;</span>
+              <span class="term-prompt">/browser/website/grvbowski.com ~ %</span>
               <input id="calendarCmdInput" class="term-input" type="text" autocomplete="off" spellcheck="false" />
             </label>
-            <div class="term-help">commands: /booking /slots /topics /flow /help /clear</div>
           </div>
         </article>
 
@@ -118,16 +128,15 @@
           <div class="contact-terminal" id="contactTerminal">
             <div class="term-output" id="termOutput" aria-live="polite"></div>
             <label class="term-input-wrap" for="termInput">
-              <span class="term-prompt" id="termPrompt">cmd &gt;</span>
+              <span class="term-prompt" id="termPrompt">/browser/website/grvbowski.com ~ %</span>
               <input id="termInput" class="term-input" type="text" autocomplete="off" spellcheck="false" />
             </label>
-            <div class="term-help">flow: email → subject → message | commands: /edit email|subject|message /show /submit /reset /help</div>
           </div>
         </article>
       </div>
     </section>
   </main>
 
-  <script src="./app.js?v=20260214x" defer></script>
+  <script src="./app.js?v=20260215c" defer></script>
 </body>
 </html>
